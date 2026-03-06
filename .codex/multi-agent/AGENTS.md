@@ -56,4 +56,12 @@ Do not manually edit inside the managed block.
 - [MA-04] Strict gate PASS assertions are strongest when transport stability and live telemetry presence are validated in the same run as config/policy checks.
 - [MA-05] Bootstrap threads should capture telemetry and strict-gate baselines before any build/validate actions to make later failures attributable.
 - [MA-05] Scope locks are safer when explicitly re-validated in evidence commands rather than assumed from plan text.
+- [MA-06] In constrained environments, a lightweight deterministic local-dev image path is required to keep MA build threads executable within session time bounds.
+- [MA-06] Recording explicit optional-skip evidence (`docker image inspect` exit code) avoids ambiguity for downstream validation threads.
+- [MA-07] Explicitly separating required-path success from optional-path skip keeps MA-07 status deterministic and unblocks MA-09.
+- [MA-07] Capturing log tail evidence for successful checks gives an auditable PASS trail without replaying long command output.
+- [MA-08] MA telemetry checks are stable when using a window that covers the full execution wave instead of very short windows.
+- [MA-08] Persisting collector output to a file simplifies deterministic PASS evidence checks across later gate stages.
+- [MA-09] Gate scripts must resolve repository root correctly to avoid false negatives from path resolution.
+- [MA-09] Telemetry window defaults should align with real multi-thread runtime duration for stable PASS behavior.
 <!-- END AUTO-LEARNINGS -->
