@@ -104,7 +104,9 @@ cat >/tmp/sanitizer.cpp <<'CPP'
 int main() {
   volatile int x = 42;
   volatile int y = 2;
-  return static_cast<int>(x / y);
+  volatile int z = static_cast<int>(x / y);
+  (void)z;
+  return 0;
 }
 CPP
 if ! ${compile_cmd} /tmp/sanitizer.cpp -fsyntax-only >/dev/null 2>&1; then

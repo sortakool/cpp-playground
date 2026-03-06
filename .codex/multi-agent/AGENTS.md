@@ -67,4 +67,6 @@ Do not manually edit inside the managed block.
 - [MA-08] Persisting collector output to a file simplifies deterministic PASS evidence checks across later gate stages.
 - [MA-09] Gate scripts must resolve repository root correctly to avoid false negatives from path resolution.
 - [MA-09] Telemetry window defaults should align with real multi-thread runtime duration for stable PASS behavior.
+- [MA-10] GCC reflection image build is lengthy but deterministic when run through the pinned `build_images.sh` path.
+- [MA-10] Running sync + strict gate immediately after thread completion preserves MA policy consistency.
 <!-- END AUTO-LEARNINGS -->
