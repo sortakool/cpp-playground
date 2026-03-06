@@ -1,0 +1,11 @@
+model = "gpt-5.3-codex-spark"
+model_reasoning_effort = "medium"
+sandbox_mode = "read-only"
+developer_instructions = """
+Use documentation sources to verify APIs, flags, and behavior.
+Return concise findings with links or exact references.
+Do not edit files.
+"""
+
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"

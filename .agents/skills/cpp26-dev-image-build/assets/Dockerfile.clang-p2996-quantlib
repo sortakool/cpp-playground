@@ -1,0 +1,24 @@
+ARG BASE_IMAGE=cpp26-dev-clang:latest
+FROM ${BASE_IMAGE}
+
+ARG QUANTLIB_VERSION=1.33
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libboost-all-dev autoconf automake libtool && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN set -e; \
+    cd /tmp; \
+    wget -q https://github.com/lballabio/QuantLib/releases/download/v${QUANTLIB_VERSION}/QuantLib-${QUANTLIB_VERSION}.tar.gz; \
+    tar xzf QuantLib-${QUANTLIB_VERSION}.tar.gz; \
+    cd QuantLib-${QUANTLIB_VERSION}; \
+    CPPFLAGS="-DQL_USE_STD_SHARED_PTR" \
+    CXXFLAGS="-O3 -fPIC -std=c++14" \
+    ./configure --prefix=/opt/ql_install --with-pic --disable-shared --enable-static --disable-test-suite --disable-examples; \
+    make -j"$(nproc)"; \
+    make install; \
+    rm -rf /tmp/QuantLib-${QUANTLIB_VERSION} /tmp/QuantLib-${QUANTLIB_VERSION}.tar.gz
+
+ENV QuantLib_DIR=/opt/ql_install
+WORKDIR /workspace
+CMD ["bash"]

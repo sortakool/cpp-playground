@@ -1,0 +1,11 @@
+ubuntu_version: "24.04"
+clang_repo: "https://github.com/bloomberg/clang-p2996.git"
+clang_ref: "2ea0a79fe7bb5f6fdb8c687ba0e21ab63696e7f7"
+gcc_repo: "https://forge.sourceware.org/marek/gcc.git"
+gcc_ref: "95f5ec013f4ce8b3cd7f6f4434d3c36db11526a8"
+vcpkg_ref: "master"
+quantlib_version: "1.33"
+platform_default: "linux/amd64"
+default_registries:
+  - "ghcr.io/ray-manaloto"
+  - "docker.io/raymanaloto"

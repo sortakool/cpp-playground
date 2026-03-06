@@ -1,0 +1,61 @@
+ARG UBUNTU_VERSION=24.04
+FROM ubuntu:${UBUNTU_VERSION} AS builder
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG GCC_REFLECTION_REPO=https://forge.sourceware.org/marek/gcc.git
+ARG GCC_REFLECTION_REF=reflection
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates git build-essential cmake ninja-build python3 python3-pip \
+    flex bison texinfo gawk wget curl unzip xz-utils \
+    libgmp-dev libmpfr-dev libmpc-dev libisl-dev zlib1g-dev \
+    ccache gdb lldb valgrind perf pkg-config && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt
+RUN git clone --single-branch --branch reflection ${GCC_REFLECTION_REPO} gcc-reflection && \
+    cd gcc-reflection && \
+    if [ "${GCC_REFLECTION_REF}" != "reflection" ]; then \
+      git fetch origin ${GCC_REFLECTION_REF} --depth 1 && git checkout ${GCC_REFLECTION_REF}; \
+    fi
+
+WORKDIR /opt/gcc-reflection/build
+RUN ../configure \
+    --prefix=/opt/gcc-reflection-install \
+    --enable-languages=c,c++ \
+    --disable-bootstrap \
+    --disable-multilib \
+    --disable-libsanitizer && \
+    make -j"$(nproc)" && \
+    make install
+
+FROM ubuntu:${UBUNTU_VERSION}
+ARG DEBIAN_FRONTEND=noninteractive
+ARG VCPKG_REF=master
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates git build-essential cmake ninja-build pkg-config \
+    python3 python3-pip ccache gdb lldb valgrind perf curl wget unzip \
+    libssl-dev zlib1g-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt/gcc-reflection-install /opt/gcc-reflection
+ENV PATH="/opt/gcc-reflection/bin:${PATH}"
+ENV CC=/opt/gcc-reflection/bin/gcc
+ENV CXX=/opt/gcc-reflection/bin/g++
+
+RUN python3 -m pip install --no-cache-dir conan==2.*
+
+RUN git clone https://github.com/microsoft/vcpkg.git /opt/vcpkg && \
+    cd /opt/vcpkg && \
+    git checkout ${VCPKG_REF} && \
+    ./bootstrap-vcpkg.sh -disableMetrics
+ENV VCPKG_ROOT=/opt/vcpkg
+ENV PATH="/opt/vcpkg:${PATH}"
+
+RUN printf '#include <meta>\nint main(){return 0;}\n' > /tmp/refl.cpp && \
+    g++ -std=c++26 -freflection /tmp/refl.cpp -o /tmp/refl && \
+    rm -f /tmp/refl.cpp /tmp/refl
+
+WORKDIR /workspace
+CMD ["bash"]

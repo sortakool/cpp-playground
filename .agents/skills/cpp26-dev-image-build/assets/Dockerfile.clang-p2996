@@ -1,0 +1,63 @@
+ARG UBUNTU_VERSION=24.04
+FROM ubuntu:${UBUNTU_VERSION} AS builder
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG CLANG_P2996_REPO=https://github.com/bloomberg/clang-p2996.git
+ARG CLANG_P2996_REF=d77eff1cbd78fd065668acf93b1f5f400d39134d
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates git cmake ninja-build build-essential python3 \
+    python3-pip pkg-config ccache lld mold gdb lldb valgrind perf \
+    wget curl unzip xz-utils && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt
+RUN git clone --depth 1 --branch p2996 ${CLANG_P2996_REPO} clang-p2996 && \
+    cd clang-p2996 && \
+    git fetch origin ${CLANG_P2996_REF} --depth 1 && \
+    git checkout ${CLANG_P2996_REF}
+
+RUN cmake -S /opt/clang-p2996/llvm -B /opt/clang-p2996/build -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLLVM_ENABLE_ASSERTIONS=ON \
+    -DLLVM_ENABLE_PROJECTS="clang" \
+    -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
+    -DLLVM_TARGETS_TO_BUILD="X86" \
+    -DCLANG_DEFAULT_CXX_STDLIB=libc++ \
+    -DCMAKE_INSTALL_PREFIX=/opt/clang-p2996-install
+
+RUN cmake --build /opt/clang-p2996/build -j"$(nproc)" && \
+    cmake --install /opt/clang-p2996/build
+
+FROM ubuntu:${UBUNTU_VERSION}
+ARG DEBIAN_FRONTEND=noninteractive
+ARG VCPKG_REF=master
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates git build-essential cmake ninja-build pkg-config \
+    python3 python3-pip ccache gdb lldb valgrind perf curl wget unzip \
+    libssl-dev zlib1g-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt/clang-p2996-install /opt/clang-p2996
+ENV PATH="/opt/clang-p2996/bin:${PATH}"
+ENV CC=/opt/clang-p2996/bin/clang
+ENV CXX=/opt/clang-p2996/bin/clang++
+ENV LD_LIBRARY_PATH="/opt/clang-p2996/lib/x86_64-unknown-linux-gnu:/opt/clang-p2996/lib:${LD_LIBRARY_PATH}"
+
+RUN python3 -m pip install --no-cache-dir conan==2.*
+
+RUN git clone https://github.com/microsoft/vcpkg.git /opt/vcpkg && \
+    cd /opt/vcpkg && \
+    git checkout ${VCPKG_REF} && \
+    ./bootstrap-vcpkg.sh -disableMetrics
+ENV VCPKG_ROOT=/opt/vcpkg
+ENV PATH="/opt/vcpkg:${PATH}"
+
+RUN printf '#include <meta>\nint main(){return 0;}\n' > /tmp/refl.cpp && \
+    clang++ -std=c++2c -freflection -freflection-latest -fexpansion-statements \
+      -stdlib=libc++ /tmp/refl.cpp -o /tmp/refl && \
+    rm -f /tmp/refl.cpp /tmp/refl
+
+WORKDIR /workspace
+CMD ["bash"]

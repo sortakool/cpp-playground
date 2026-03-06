@@ -1,0 +1,6 @@
+interface:
+  display_name: "C++26 Dev Image Publish"
+  short_description: "Publish and sync C++26 dev image artifacts"
+  default_prompt: "Use $cpp26-dev-image-publish to tag, publish, and sync C++26 dev image artifacts across registries."
+policy:
+  allow_implicit_invocation: false

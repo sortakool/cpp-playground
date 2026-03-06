@@ -1,0 +1,6 @@
+interface:
+  display_name: "C++26 Dev Image Validate"
+  short_description: "Validate reflection/sanitizer toolchain image health"
+  default_prompt: "Use $cpp26-dev-image-validate to run reflection and sanitizer smoke checks for C++26 Docker images."
+policy:
+  allow_implicit_invocation: true

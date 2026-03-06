@@ -1,0 +1,33 @@
+[features]
+multi_agent = true
+
+[otel]
+environment = "cpp-playground-local"
+log_user_prompt = true
+exporter = { otlp-http = { endpoint = "http://127.0.0.1:4318", protocol = "binary" } }
+trace_exporter = { otlp-http = { endpoint = "http://127.0.0.1:4318", protocol = "binary" } }
+
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 3600
+
+[agents.explorer]
+description = "Read-only codebase explorer for locating relevant files and constraints."
+config_file = "agents/explorer.toml"
+
+[agents.docs_researcher]
+description = "Read-only documentation researcher for API and framework verification."
+config_file = "agents/docs_researcher.toml"
+
+[agents.worker]
+description = "Write-capable implementation worker for scoped, targeted changes."
+config_file = "agents/worker.toml"
+
+[agents.reviewer]
+description = "Read-only reviewer focused on correctness, security, and tests."
+config_file = "agents/reviewer.toml"
+
+[agents.monitor]
+description = "Long-running monitor for polling and status tracking tasks."
+config_file = "agents/monitor.toml"
