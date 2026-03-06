@@ -54,4 +54,6 @@ Do not manually edit inside the managed block.
 - [MA-03] Conditional destructive requests (for example, "publish if tests pass") should be treated as explicit-confirmation workflows, not auto-routed execution.
 - [MA-03] Keeping matrix policy and skill-level `allow_implicit_invocation` settings aligned prevents silent drift in invocation behavior.
 - [MA-04] Strict gate PASS assertions are strongest when transport stability and live telemetry presence are validated in the same run as config/policy checks.
+- [MA-05] Bootstrap threads should capture telemetry and strict-gate baselines before any build/validate actions to make later failures attributable.
+- [MA-05] Scope locks are safer when explicitly re-validated in evidence commands rather than assumed from plan text.
 <!-- END AUTO-LEARNINGS -->
