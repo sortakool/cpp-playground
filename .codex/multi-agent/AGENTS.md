@@ -33,6 +33,9 @@ For `MA-01` and all later threads:
 - Include commit evidence in the result under `## Evidence Commands` (at minimum: `git status --short`, `git add ...`, `git commit ...`, `git show --name-only --oneline -n 1`).
 - If validation fails, do not commit incomplete thread state; report blockers and owner thread.
 
+For `MA-05` and all later threads:
+- Include telemetry/log evidence in each result (commands + observed outputs summary) under `## Evidence Commands` and `## Findings`.
+
 The script regenerates the learnings section below from all `MA-*-result.md` files.
 Do not manually edit inside the managed block.
 

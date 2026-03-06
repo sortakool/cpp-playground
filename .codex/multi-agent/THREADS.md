@@ -26,9 +26,31 @@ This workspace uses an App + CLI hybrid control plane:
 - Run binary PASS/FAIL gate covering config, agent tools, policy, and telemetry.
 - Roles: `worker`, `monitor`, `reviewer`.
 
+6. `MA-05 Environment + Team Bootstrap`
+- Verify build prerequisites and establish telemetry/log evidence baseline for the MA-05..MA-09 execution window.
+- Roles: `worker`, `monitor`.
+
+7. `MA-06 Build Core Dev Images`
+- Build local core dev images via canonical build script with clang required and gcc optional.
+- Roles: `worker`, `monitor`.
+
+8. `MA-07 Validate Core Dev Images`
+- Validate local core dev images via canonical validation script with clang required and gcc optional.
+- Roles: `worker`, `reviewer`.
+
+9. `MA-08 Telemetry/Log Verification`
+- Verify telemetry/log evidence for MA-05..MA-07 runtime windows.
+- Roles: `monitor`, `reviewer`.
+
+10. `MA-09 Final Dev Acceptance Gate`
+- Run final binary acceptance gate for local dev images and telemetry stability.
+- Roles: `worker`, `reviewer`.
+
 ## Execution order
 
 Run `MA-00` first. Then `MA-01` and `MA-02` can run in parallel. `MA-03` follows once runtime baseline is stable. `MA-04` is final acceptance.
+
+For the dev-image wave, run `MA-05` first, then `MA-06`, then `MA-07`, then `MA-08`, then `MA-09` as strict sequential acceptance.
 
 ## Thread completion contract
 
