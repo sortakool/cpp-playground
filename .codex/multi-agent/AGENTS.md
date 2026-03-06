@@ -69,4 +69,6 @@ Do not manually edit inside the managed block.
 - [MA-09] Telemetry window defaults should align with real multi-thread runtime duration for stable PASS behavior.
 - [MA-10] GCC reflection image build is lengthy but deterministic when run through the pinned `build_images.sh` path.
 - [MA-10] Running sync + strict gate immediately after thread completion preserves MA policy consistency.
+- [MA-11] Sanitizer smoke tests must return process exit code `0`; using computed arithmetic as `main` return value causes false negatives under `set -e`.
+- [MA-11] The current host runs `linux/arm64` while test images are `linux/amd64`; warnings are expected and non-blocking for this workflow.
 <!-- END AUTO-LEARNINGS -->
