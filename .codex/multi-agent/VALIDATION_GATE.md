@@ -20,3 +20,19 @@ Run from repo root:
 ## FAIL conditions
 
 Any failed check returns non-zero exit code and prints failing check names.
+
+## Telemetry Evidence Collection (MA-05+)
+
+Use the thread telemetry collector script to capture reproducible evidence for MA-05 and later threads:
+
+```bash
+./.codex/multi-agent/scripts/collect_thread_telemetry.sh --since 30m
+```
+
+Optional controls:
+- `--until <time>` to cap the window.
+- `--collector <container>` to target a non-default collector name.
+
+Collector script behavior:
+- Exits non-zero only for operational failures (for example, collector inaccessible).
+- Exits zero for successful evidence extraction even when no events are present.
