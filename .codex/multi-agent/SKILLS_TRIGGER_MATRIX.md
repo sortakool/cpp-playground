@@ -18,3 +18,14 @@
 - Build/validate prompts must not trigger publish behavior.
 - Publish operations must require explicit user intent.
 - OpenAI docs requests must use official docs sources before general web search.
+
+## Intent Boundary Checks (False Trigger Control)
+
+| Prompt example | Expected skill route | Boundary rationale |
+|---|---|---|
+| "Build the latest clang reflection image and run sanitizer smoke tests." | `cpp26-dev-image-build` + `cpp26-dev-image-validate` | Build + validate language only; no publish verbs present. |
+| "Retag and push the clang image to GHCR." | `cpp26-dev-image-publish` only | Contains explicit publish verbs (`retag`, `push`). |
+| "Can you verify the image is healthy before release?" | `cpp26-dev-image-validate` | "Before release" alone is not publish intent. |
+| "Publish if tests pass." | Block for explicit confirmation before `cpp26-dev-image-publish` | Conditional publish is still destructive; require explicit user confirmation in-thread. |
+| "How do Codex AGENTS.md precedence rules work?" | `openai-docs` | Product/docs question; should not route to local image skills. |
+| "Split this work into sub-agents and execute independent tasks." | `parallel-agents` + `subagent-driven-development` | Explicit orchestration + execution request. |

@@ -47,4 +47,7 @@ Do not manually edit inside the managed block.
 - [MA-02] Multi-agent policy should encode depth and wait behavior explicitly; leaving these implicit increases orchestration drift under load.
 - [MA-02] Child-thread approvals must be treated as inherited constraints, not independently escalatable capabilities.
 - [MA-02] Concurrency defaults are safer as per-task-class wave caps under a global ceiling than as a single flat thread count.
+- [MA-03] Trigger matrices are more reliable when they include concrete prompt-intent examples that separate release-adjacent language from true publish intent.
+- [MA-03] Conditional destructive requests (for example, "publish if tests pass") should be treated as explicit-confirmation workflows, not auto-routed execution.
+- [MA-03] Keeping matrix policy and skill-level `allow_implicit_invocation` settings aligned prevents silent drift in invocation behavior.
 <!-- END AUTO-LEARNINGS -->
