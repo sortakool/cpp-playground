@@ -46,11 +46,25 @@ This workspace uses an App + CLI hybrid control plane:
 - Run final binary acceptance gate for local dev images and telemetry stability.
 - Roles: `worker`, `reviewer`.
 
+11. `MA-10 Build GCC Core Dev Image`
+- Build local GCC core dev image via canonical build script.
+- Roles: `worker`, `monitor`.
+
+12. `MA-11 Validate GCC Core Dev Image`
+- Validate local GCC core dev image via canonical validation script.
+- Roles: `worker`, `reviewer`.
+
+13. `MA-12 Final GCC Acceptance`
+- Run final binary acceptance gate with `--require-gcc`.
+- Roles: `worker`, `reviewer`.
+
 ## Execution order
 
 Run `MA-00` first. Then `MA-01` and `MA-02` can run in parallel. `MA-03` follows once runtime baseline is stable. `MA-04` is final acceptance.
 
 For the dev-image wave, run `MA-05` first, then `MA-06`, then `MA-07`, then `MA-08`, then `MA-09` as strict sequential acceptance.
+
+For the gcc-completion wave, run `MA-10`, then `MA-11`, then `MA-12` as strict sequential acceptance.
 
 ## Thread completion contract
 

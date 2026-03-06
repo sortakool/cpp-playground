@@ -36,6 +36,9 @@ For `MA-01` and all later threads:
 For `MA-05` and all later threads:
 - Include telemetry/log evidence in each result (commands + observed outputs summary) under `## Evidence Commands` and `## Findings`.
 
+For `MA-10` through `MA-12`:
+- Include strict gate evidence in each result (exact gate commands plus PASS/FAIL output summaries) under `## Evidence Commands` and `## Findings`.
+
 The script regenerates the learnings section below from all `MA-*-result.md` files.
 Do not manually edit inside the managed block.
 
