@@ -44,4 +44,7 @@ Do not manually edit inside the managed block.
 - [MA-01] For MA runtime baselines, include a computed effective-settings matrix (global vs project) rather than only listing raw TOML content.
 - [MA-01] Role coherence checks are stronger when validated both structurally (declared + file exists) and behaviorally (sandbox alignment by role intent).
 - [MA-01] Approval/safety checks should explicitly separate runtime-level controls from skill-level invocation policies to avoid false conflict reports.
+- [MA-02] Multi-agent policy should encode depth and wait behavior explicitly; leaving these implicit increases orchestration drift under load.
+- [MA-02] Child-thread approvals must be treated as inherited constraints, not independently escalatable capabilities.
+- [MA-02] Concurrency defaults are safer as per-task-class wave caps under a global ceiling than as a single flat thread count.
 <!-- END AUTO-LEARNINGS -->
