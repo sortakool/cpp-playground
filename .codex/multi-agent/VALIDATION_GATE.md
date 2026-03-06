@@ -36,3 +36,23 @@ Optional controls:
 Collector script behavior:
 - Exits non-zero only for operational failures (for example, collector inaccessible).
 - Exits zero for successful evidence extraction even when no events are present.
+
+## Final Dev Image Acceptance Gate (MA-09)
+
+Run the final local dev-image acceptance gate:
+
+```bash
+./.codex/multi-agent/scripts/ma_dev_image_gate.sh
+```
+
+Optional stricter mode:
+
+```bash
+./.codex/multi-agent/scripts/ma_dev_image_gate.sh --require-gcc
+```
+
+Gate required checks:
+- `./.codex/scripts/strict_multi_agent_gate.sh` passes.
+- `cpp26-dev-clang:dev` exists locally.
+- Clang core validation passes.
+- Telemetry evidence is present and stable via `collect_thread_telemetry.sh`.
