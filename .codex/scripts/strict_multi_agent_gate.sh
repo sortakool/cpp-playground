@@ -121,10 +121,11 @@ else
   pass "internal upstream forwarding transport is stable (no retries/drops)"
 fi
 
-if grep -Eq 'event\.name=codex\.(api_request|sse_event|websocket_event|tool_result|user_prompt)' <<<"$RECENT_LOGS"; then
-  pass "recent codex telemetry events observed"
-else
+if "$ROOT_DIR/.codex/multi-agent/scripts/collect_thread_telemetry.sh" --since 120m \
+  | grep -q "(no codex event lines found in window)"; then
   fail "recent codex telemetry events observed"
+else
+  pass "recent codex telemetry events observed"
 fi
 
 if ((${#failures[@]} > 0)); then

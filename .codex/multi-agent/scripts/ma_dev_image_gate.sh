@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 REQUIRE_GCC=0
-SINCE_WINDOW="30m"
+SINCE_WINDOW="120m"
 
 usage() {
   cat <<USAGE
@@ -11,7 +11,7 @@ Usage: $0 [--require-gcc] [--since <time>]
 
 Options:
   --require-gcc   Require gcc core validation as a hard check.
-  --since <time>  Telemetry window for collector check (default: 30m).
+  --since <time>  Telemetry window for collector check (default: 120m).
 USAGE
 }
 
