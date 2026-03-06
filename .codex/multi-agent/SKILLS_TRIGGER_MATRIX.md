@@ -4,9 +4,12 @@
 
 | Prompt intent | Skill(s) | Invocation policy |
 |---|---|---|
+| local-only core dev image build + validate orchestration (clang required, gcc optional) | `cpp26-dev-image-build` + `cpp26-dev-image-validate` | Implicit allowed |
 | Build/refresh C++26 reflection images | `cpp26-dev-image-build` | Implicit allowed |
 | Validate reflection/sanitizer image health | `cpp26-dev-image-validate` | Implicit allowed |
-| Publish/retag/sync image artifacts | `cpp26-dev-image-publish` | Explicit-only |
+| telemetry verification thread for MA evidence windows | `verification-before-completion` | Mandatory quality gate |
+| Final local dev acceptance gate execution | `verification-before-completion` | Mandatory quality gate |
+| Publish/retag/sync image artifacts | `cpp26-dev-image-publish` | explicit-only |
 | OpenAI/Codex product behavior/config questions | `openai-docs` | Implicit allowed |
 | Multi-agent orchestration guidance | `parallel-agents` | Implicit allowed |
 | Execute independent implementation tasks with sub-agents | `subagent-driven-development` | Implicit allowed |
@@ -16,8 +19,10 @@
 ## Negative checks
 
 - Build/validate prompts must not trigger publish behavior.
+- Build/validate language (including release-adjacent phrasing) must not trigger publish behavior.
 - Publish operations must require explicit user intent.
 - OpenAI docs requests must use official docs sources before general web search.
+- quantlib requests are out-of-scope in this MA-05..MA-09 wave.
 
 ## Intent Boundary Checks (False Trigger Control)
 
