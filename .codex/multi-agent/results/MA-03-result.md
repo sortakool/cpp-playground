@@ -33,9 +33,9 @@ rg -n "cpp26-dev-image-publish|explicit-only|publish" .codex/multi-agent -S
 ./.codex/scripts/strict_multi_agent_gate.sh
 ```
 
-4. Matrix update for false-positive/false-negative intent boundaries:
+4. Matrix update evidence for false-positive/false-negative intent boundaries:
 ```bash
-apply_patch  # updated .codex/multi-agent/SKILLS_TRIGGER_MATRIX.md
+git show -- .codex/multi-agent/SKILLS_TRIGGER_MATRIX.md
 ```
 
 5. Sync learnings index:
