@@ -50,4 +50,5 @@ Do not manually edit inside the managed block.
 - [MA-03] Trigger matrices are more reliable when they include concrete prompt-intent examples that separate release-adjacent language from true publish intent.
 - [MA-03] Conditional destructive requests (for example, "publish if tests pass") should be treated as explicit-confirmation workflows, not auto-routed execution.
 - [MA-03] Keeping matrix policy and skill-level `allow_implicit_invocation` settings aligned prevents silent drift in invocation behavior.
+- [MA-04] Strict gate PASS assertions are strongest when transport stability and live telemetry presence are validated in the same run as config/policy checks.
 <!-- END AUTO-LEARNINGS -->
