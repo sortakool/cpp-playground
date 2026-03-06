@@ -13,7 +13,8 @@ Run from repo root:
 - Required roles exist and role config files are present.
 - Publish skill remains explicit-only.
 - Local collector health endpoint is reachable.
-- No duplicated OTLP path errors (`/v1/logs/v1/logs`, `/v1/traces/v1/traces`) in collector logs.
+- No duplicated OTLP path errors (`/v1/logs/v1/logs`, `/v1/traces/v1/traces`) in collector forwarding error lines from the current collector runtime.
+- Internal upstream forwarding is transport-stable (no retry/drop timeout errors for `otlphttp/internal_logs` or `otlphttp/internal_traces`) during the gate run.
 - At least one recent Codex telemetry event appears in collector logs.
 
 ## FAIL conditions

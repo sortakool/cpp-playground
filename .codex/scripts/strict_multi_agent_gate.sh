@@ -95,18 +95,30 @@ else
   fail "collector health endpoint reachable"
 fi
 
-RECENT_LOGS="$(docker logs --since 180m "$COLLECTOR_NAME" 2>&1 || true)"
+collector_started_at="$(docker inspect --format '{{.State.StartedAt}}' "$COLLECTOR_NAME" 2>/dev/null || true)"
+if [[ -n "$collector_started_at" ]]; then
+  RECENT_LOGS="$(docker logs --since "$collector_started_at" "$COLLECTOR_NAME" 2>&1 || true)"
+else
+  RECENT_LOGS="$(docker logs --since 20m "$COLLECTOR_NAME" 2>&1 || true)"
+fi
+FORWARDING_LOGS="$(grep -E 'exporterhelper/(retry_sender|queue_sender)' <<<"$RECENT_LOGS" || true)"
 
-if grep -q '/v1/logs/v1/logs' <<<"$RECENT_LOGS"; then
+if grep -Eq 'exporterhelper/(retry_sender|queue_sender).*Post ".*\/v1\/logs\/v1\/logs' <<<"$FORWARDING_LOGS"; then
   fail "no duplicated logs path in collector outbound requests"
 else
   pass "no duplicated logs path in collector outbound requests"
 fi
 
-if grep -q '/v1/traces/v1/traces' <<<"$RECENT_LOGS"; then
+if grep -Eq 'exporterhelper/(retry_sender|queue_sender).*Post ".*\/v1\/traces\/v1\/traces' <<<"$FORWARDING_LOGS"; then
   fail "no duplicated traces path in collector outbound requests"
 else
   pass "no duplicated traces path in collector outbound requests"
+fi
+
+if grep -Eq 'exporterhelper/(retry_sender|queue_sender).*(otlphttp/internal_logs|otlphttp/internal_traces).*(context deadline exceeded|i/o timeout|no more retries left|dropping data|Dropping data)' <<<"$FORWARDING_LOGS"; then
+  fail "internal upstream forwarding transport is stable (no retries/drops)"
+else
+  pass "internal upstream forwarding transport is stable (no retries/drops)"
 fi
 
 if grep -Eq 'event\.name=codex\.(api_request|sse_event|websocket_event|tool_result|user_prompt)' <<<"$RECENT_LOGS"; then
