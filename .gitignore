@@ -9,3 +9,6 @@ compile_commands.json
 .ruff_cache/
 .pytest_cache/
 dist/
+__pycache__/
+*.pyc
+*.egg-info/
