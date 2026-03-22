@@ -1,0 +1,58 @@
+[workspace]
+channels = ["conda-forge"]
+description = "Locked C++26 playground environment with pixi-managed compiler lanes"
+name = "cpp-playground"
+platforms = ["linux-64", "osx-64", "osx-arm64"]
+requires-pixi = ">=0.66.0"
+
+[dependencies]
+cmake = ">=3.31,<4"
+ninja = ">=1.12,<2"
+pkg-config = ">=0.29.2,<1"
+pre-commit = ">=4,<5"
+python = "3.12.*"
+reuse = ">=5,<6"
+yamllint = ">=1.37,<2"
+
+[feature.llvm-stable.activation.env]
+CC = "/opt/llvm/22.1.1/bin/clang"
+CXX = "/opt/llvm/22.1.1/bin/clang++"
+LLVM_HOME = "/opt/llvm/22.1.1"
+LLVM_VERSION = "22.1.1"
+
+[feature.llvm-stable.target.linux-64.dependencies]
+include-what-you-use = "==0.25"
+
+[feature.gcc-stable.target.linux-64.dependencies]
+gcc_linux-64 = "==15.2.0"
+gxx_linux-64 = "==15.2.0"
+
+[feature.gcc-reflection.activation.env]
+CC = "/usr/local/bin/gcc-reflection"
+CXX = "/usr/local/bin/g++-reflection"
+
+[feature.clang-p2996.activation.env]
+CC = "/usr/local/bin/clang-p2996"
+CXX = "/usr/local/bin/clang-p2996++"
+
+[tasks]
+bootstrap = "python3 -m tooling bootstrap"
+lint-manifests = "yamllint ."
+refresh = "python3 -m tooling refresh"
+reuse-lint = "reuse lint"
+ruff-check = "uv run ruff check tooling"
+ruff-format = "uv run ruff format --check tooling"
+ty-check = "uv run ty check tooling"
+validate-repo = "python3 -m tooling validate --mode repo"
+validate-runtime = "python3 -m tooling validate --mode runtime"
+prove-devcontainer = "python3 -m tooling prove --surface devcontainer"
+prove-latest-kernel-vm = "python3 -m tooling prove --surface latest-kernel-vm"
+prove-latest-kernel-ci = "python3 -m tooling prove --surface latest-kernel-ci"
+
+[environments]
+default = []
+llvm-stable = ["llvm-stable"]
+gcc-stable = ["gcc-stable"]
+toolchains-stable = ["llvm-stable", "gcc-stable"]
+gcc-reflection = ["gcc-reflection"]
+clang-p2996 = ["clang-p2996"]

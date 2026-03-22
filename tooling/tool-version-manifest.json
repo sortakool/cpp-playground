@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "python_version": "3.12",
+  "channels": {
+    "node": "latest_release",
+    "linux_kernel": "latest_stable",
+    "llvm": "latest_stable_release",
+    "gcc": "latest_stable_release"
+  },
+  "images": {
+    "cpp_devcontainer": {
+      "repository": "cpp-devcontainer",
+      "default_tag": "dev"
+    },
+    "cpp26_dev_clang": {
+      "repository": "cpp26-dev-clang",
+      "default_tag": "dev"
+    },
+    "cpp26_dev_gcc": {
+      "repository": "cpp26-dev-gcc",
+      "default_tag": "dev"
+    },
+    "cpp26_dev_clang_quantlib": {
+      "repository": "cpp26-dev-clang-quantlib",
+      "default_tag": "dev"
+    }
+  },
+  "cpp26_dev_images": {
+    "platform_default": "linux/amd64",
+    "ubuntu_version": "24.04",
+    "quantlib_version": "1.33",
+    "vcpkg_bundle_url": "https://github.com/microsoft/vcpkg-tool/releases/latest/download/vcpkg-standalone-bundle.tar.gz",
+    "clang_p2996_repo": "https://github.com/bloomberg/clang-p2996.git",
+    "clang_p2996_ref": "2ea0a79fe7bb5f6fdb8c687ba0e21ab63696e7f7",
+    "gcc_reflection_repo": "https://forge.sourceware.org/marek/gcc.git",
+    "gcc_reflection_ref": "95f5ec013f4ce8b3cd7f6f4434d3c36db11526a8"
+  },
+  "tools": {
+    "node": {
+      "display_name": "Node",
+      "source": {
+        "kind": "github_release",
+        "owner": "nodejs",
+        "repo": "node",
+        "tag_prefix": "v"
+      },
+      "version": "25.8.1"
+    },
+    "linux_kernel": {
+      "display_name": "Linux kernel",
+      "source": {
+        "kind": "kernel_latest_stable"
+      },
+      "version": "6.19.9"
+    },
+    "llvm": {
+      "display_name": "LLVM",
+      "source": {
+        "kind": "github_release",
+        "owner": "llvm",
+        "repo": "llvm-project",
+        "tag_prefix": "llvmorg-"
+      },
+      "version": "22.1.1"
+    },
+    "gcc": {
+      "display_name": "GCC",
+      "source": {
+        "kind": "gnu_gcc_latest"
+      },
+      "version": "15.2.0"
+    },
+    "mise": {
+      "display_name": "mise",
+      "source": {
+        "kind": "github_release",
+        "owner": "jdx",
+        "repo": "mise",
+        "tag_prefix": "v"
+      },
+      "version": "2026.3.10"
+    },
+    "uv": {
+      "display_name": "uv",
+      "source": {
+        "kind": "github_release",
+        "owner": "astral-sh",
+        "repo": "uv",
+        "tag_prefix": ""
+      },
+      "version": "0.10.12"
+    },
+    "pixi": {
+      "display_name": "pixi",
+      "source": {
+        "kind": "github_release",
+        "owner": "prefix-dev",
+        "repo": "pixi",
+        "tag_prefix": "v"
+      },
+      "version": "0.66.0"
+    },
+    "codex_cli": {
+      "display_name": "Codex CLI",
+      "source": {
+        "kind": "npm",
+        "package": "@openai/codex"
+      },
+      "version": "0.116.0"
+    },
+    "claude_code": {
+      "display_name": "Claude Code",
+      "source": {
+        "kind": "npm",
+        "package": "@anthropic-ai/claude-code"
+      },
+      "version": "2.1.81"
+    },
+    "gemini_cli": {
+      "display_name": "Gemini CLI",
+      "source": {
+        "kind": "npm",
+        "package": "@google/gemini-cli"
+      },
+      "version": "0.34.0"
+    },
+    "just": {
+      "display_name": "just",
+      "source": {
+        "kind": "github_release",
+        "owner": "casey",
+        "repo": "just",
+        "tag_prefix": ""
+      },
+      "version": "1.47.1"
+    },
+    "chezmoi": {
+      "display_name": "chezmoi",
+      "source": {
+        "kind": "github_release",
+        "owner": "twpayne",
+        "repo": "chezmoi",
+        "tag_prefix": "v"
+      },
+      "version": "2.70.0"
+    },
+    "watchexec": {
+      "display_name": "watchexec",
+      "source": {
+        "kind": "github_release",
+        "owner": "watchexec",
+        "repo": "watchexec",
+        "tag_prefix": "v"
+      },
+      "version": "2.5.0"
+    },
+    "ruff": {
+      "display_name": "ruff",
+      "source": {
+        "kind": "pixi_search",
+        "package": "ruff"
+      },
+      "version": "0.15.7"
+    },
+    "ty": {
+      "display_name": "ty",
+      "source": {
+        "kind": "pixi_search",
+        "package": "ty"
+      },
+      "version": "0.0.24"
+    },
+    "include_what_you_use": {
+      "display_name": "include-what-you-use",
+      "source": {
+        "kind": "pixi_search",
+        "package": "include-what-you-use"
+      },
+      "version": "0.25"
+    }
+  }
+}

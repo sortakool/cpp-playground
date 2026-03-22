@@ -1,0 +1,14 @@
+[tools]
+node = "25.8.1"
+python = "3.12"
+uv = "0.10.12"
+pixi = "0.66.0"
+
+# Exact CLI pins are refreshed by `python3 -m tooling refresh`.
+# Prefer mise's native registry aliases before backend-qualified selectors.
+codex = "0.116.0"
+claude-code = "2.1.81"
+gemini-cli = "0.34.0"
+just = "1.47.1"
+chezmoi = "2.70.0"
+watchexec = "2.5.0"

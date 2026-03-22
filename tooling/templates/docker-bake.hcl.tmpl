@@ -1,0 +1,83 @@
+variable "REGISTRY" {
+  default = "ghcr.io/ray-manaloto"
+}
+
+variable "IMAGE" {
+  default = "{{ .tooling.images.cpp_devcontainer.repository }}"
+}
+
+variable "TAG" {
+  default = "{{ .tooling.images.cpp_devcontainer.default_tag }}"
+}
+
+variable "CLANG_BASE_IMAGE" {
+  default = "{{ .tooling.images.cpp26_dev_clang.defaultRef }}"
+}
+
+variable "GCC_BASE_IMAGE" {
+  default = "{{ .tooling.images.cpp26_dev_gcc.defaultRef }}"
+}
+
+variable "NODE_VERSION" {
+  default = "{{ .tooling.tools.node.version }}"
+}
+
+variable "NODE_MAJOR" {
+  default = "{{ .tooling.derived.nodeMajor }}"
+}
+
+variable "MISE_VERSION" {
+  default = "v{{ .tooling.tools.mise.version }}"
+}
+
+variable "UV_VERSION" {
+  default = "{{ .tooling.tools.uv.version }}"
+}
+
+variable "PIXI_VERSION" {
+  default = "v{{ .tooling.tools.pixi.version }}"
+}
+
+variable "LLVM_VERSION" {
+  default = "{{ .tooling.tools.llvm.version }}"
+}
+
+group "default" {
+  targets = ["dev"]
+}
+
+target "dev" {
+  context = "."
+  dockerfile = ".devcontainer/Dockerfile"
+  platforms = ["linux/amd64"]
+  pull = true
+
+  tags = [
+    "${IMAGE}:${TAG}",
+    "${REGISTRY}/${IMAGE}:${TAG}"
+  ]
+
+  cache-from = [
+    "type=registry,ref=${REGISTRY}/${IMAGE}:buildcache"
+  ]
+
+  cache-to = [
+    "type=registry,ref=${REGISTRY}/${IMAGE}:buildcache,mode=max"
+  ]
+
+  attest = [
+    "type=provenance,mode=min",
+    "type=sbom"
+  ]
+
+  args = {
+    CLANG_BASE_IMAGE = CLANG_BASE_IMAGE
+    GCC_BASE_IMAGE = GCC_BASE_IMAGE
+    NODE_VERSION = NODE_VERSION
+    NODE_MAJOR = NODE_MAJOR
+    MISE_VERSION = MISE_VERSION
+    UV_VERSION = UV_VERSION
+    PIXI_VERSION = PIXI_VERSION
+    LLVM_VERSION = LLVM_VERSION
+  }
+}

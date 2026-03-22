@@ -1,0 +1,14 @@
+[tools]
+node = "{{ .tooling.tools.node.version }}"
+python = "{{ .tooling.pythonVersion }}"
+uv = "{{ .tooling.tools.uv.version }}"
+pixi = "{{ .tooling.tools.pixi.version }}"
+
+# Exact CLI pins are refreshed by `python3 -m tooling refresh`.
+# Prefer mise's native registry aliases before backend-qualified selectors.
+codex = "{{ .tooling.tools.codex_cli.version }}"
+claude-code = "{{ .tooling.tools.claude_code.version }}"
+gemini-cli = "{{ .tooling.tools.gemini_cli.version }}"
+just = "{{ .tooling.tools.just.version }}"
+chezmoi = "{{ .tooling.tools.chezmoi.version }}"
+watchexec = "{{ .tooling.tools.watchexec.version }}"

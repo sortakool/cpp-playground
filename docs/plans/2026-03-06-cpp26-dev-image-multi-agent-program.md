@@ -19,7 +19,7 @@
   - `.codex/multi-agent/VALIDATION_GATE.md`
   - `.codex/scripts/strict_multi_agent_gate.sh`
 - Existing image scripts already present:
-  - `.agents/skills/cpp26-dev-image-build/scripts/build_images.sh`
+  - `tooling/scripts/build_cpp26_images.sh`
   - `.agents/skills/cpp26-dev-image-validate/scripts/test_images.sh`
   - `.agents/skills/cpp26-dev-image-publish/scripts/publish_images.sh` (not used in this phase)
 

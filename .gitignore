@@ -1,2 +1,11 @@
 firebase-debug.log
 .DS_Store
+.env
+.env.*
+!.env.example
+.pixi/
+out/
+compile_commands.json
+.ruff_cache/
+.pytest_cache/
+dist/

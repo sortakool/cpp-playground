@@ -2,14 +2,26 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILL_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-ASSETS_DIR="${SKILL_DIR}/assets"
-LOCK_FILE="${SKILL_DIR}/references/toolchain-lock.yaml"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+IMAGE_DIR="${REPO_ROOT}/tooling/cpp26-dev-images"
+MANIFEST_PATH="${REPO_ROOT}/tooling/tool-version-manifest.json"
 
 TOOLCHAIN="all"
 FLAVOR="core"
-PLATFORM="linux/amd64"
-IMAGE_TAG="dev"
+PLATFORM="$(python3 - <<'PY' "${MANIFEST_PATH}"
+import json, sys
+from pathlib import Path
+manifest = json.loads(Path(sys.argv[1]).read_text())
+print(manifest["cpp26_dev_images"]["platform_default"])
+PY
+)"
+IMAGE_TAG="$(python3 - <<'PY' "${MANIFEST_PATH}"
+import json, sys
+from pathlib import Path
+manifest = json.loads(Path(sys.argv[1]).read_text())
+print(manifest["images"]["cpp26_dev_clang"]["default_tag"])
+PY
+)"
 REGISTRY_PREFIX=""
 DRY_RUN=0
 
@@ -42,7 +54,7 @@ while [[ $# -gt 0 ]]; do
     --registry-prefix) REGISTRY_PREFIX="$2"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     -h|--help) usage; exit 0 ;;
-    *) echo "Unknown option: $1"; usage; exit 1 ;;
+    *) echo "Unknown option: $1" >&2; usage; exit 1 ;;
   esac
 done
 
@@ -61,12 +73,6 @@ if ! command -v docker >/dev/null 2>&1; then
   exit 1
 fi
 
-clang_ref="$(grep '^clang_ref:' "${LOCK_FILE}" | awk '{print $2}' | tr -d '"')"
-gcc_ref="$(grep '^gcc_ref:' "${LOCK_FILE}" | awk '{print $2}' | tr -d '"')"
-ubuntu_version="$(grep '^ubuntu_version:' "${LOCK_FILE}" | awk '{print $2}' | tr -d '"')"
-vcpkg_ref="$(grep '^vcpkg_ref:' "${LOCK_FILE}" | awk '{print $2}' | tr -d '"')"
-quantlib_version="$(grep '^quantlib_version:' "${LOCK_FILE}" | awk '{print $2}' | tr -d '"')"
-
 prefix() {
   local name="$1"
   if [[ -n "${REGISTRY_PREFIX}" ]]; then
@@ -76,41 +82,44 @@ prefix() {
   fi
 }
 
+repo_value() {
+  local key="$1"
+  python3 - <<'PY' "${MANIFEST_PATH}" "${key}"
+import json, sys
+from pathlib import Path
+manifest = json.loads(Path(sys.argv[1]).read_text())
+print(manifest["images"][sys.argv[2]]["repository"])
+PY
+}
+
 build_clang_core() {
   local image
-  image="$(prefix cpp26-dev-clang):${IMAGE_TAG}"
+  image="$(prefix "$(repo_value cpp26_dev_clang)"):${IMAGE_TAG}"
   echo "Building ${image}"
   run docker buildx build --platform "${PLATFORM}" --load \
-    -f "${ASSETS_DIR}/Dockerfile.clang-p2996" \
-    --build-arg UBUNTU_VERSION="${ubuntu_version}" \
-    --build-arg CLANG_P2996_REF="${clang_ref}" \
-    --build-arg VCPKG_REF="${vcpkg_ref}" \
-    -t "${image}" "${ASSETS_DIR}"
+    -f "${IMAGE_DIR}/Dockerfile.clang-p2996" \
+    -t "${image}" "${IMAGE_DIR}"
 }
 
 build_gcc_core() {
   local image
-  image="$(prefix cpp26-dev-gcc):${IMAGE_TAG}"
+  image="$(prefix "$(repo_value cpp26_dev_gcc)"):${IMAGE_TAG}"
   echo "Building ${image}"
   run docker buildx build --platform "${PLATFORM}" --load \
-    -f "${ASSETS_DIR}/Dockerfile.gcc-reflection" \
-    --build-arg UBUNTU_VERSION="${ubuntu_version}" \
-    --build-arg GCC_REFLECTION_REF="${gcc_ref}" \
-    --build-arg VCPKG_REF="${vcpkg_ref}" \
-    -t "${image}" "${ASSETS_DIR}"
+    -f "${IMAGE_DIR}/Dockerfile.gcc-reflection" \
+    -t "${image}" "${IMAGE_DIR}"
 }
 
 build_clang_quantlib() {
   local base_image
   local image
-  base_image="$(prefix cpp26-dev-clang):${IMAGE_TAG}"
-  image="$(prefix cpp26-dev-clang-quantlib):${IMAGE_TAG}"
+  base_image="$(prefix "$(repo_value cpp26_dev_clang)"):${IMAGE_TAG}"
+  image="$(prefix "$(repo_value cpp26_dev_clang_quantlib)"):${IMAGE_TAG}"
   echo "Building ${image}"
   run docker buildx build --platform "${PLATFORM}" --load \
-    -f "${ASSETS_DIR}/Dockerfile.clang-p2996-quantlib" \
+    -f "${IMAGE_DIR}/Dockerfile.clang-p2996-quantlib" \
     --build-arg BASE_IMAGE="${base_image}" \
-    --build-arg QUANTLIB_VERSION="${quantlib_version}" \
-    -t "${image}" "${ASSETS_DIR}"
+    -t "${image}" "${IMAGE_DIR}"
 }
 
 if [[ "${TOOLCHAIN}" == "clang" || "${TOOLCHAIN}" == "all" ]]; then

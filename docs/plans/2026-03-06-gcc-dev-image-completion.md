@@ -6,7 +6,7 @@
 
 **Architecture:** Add a focused follow-up MA wave (`MA-10..MA-12`) rather than rewriting MA-06/07 outcomes. Reuse existing build/validate/gate scripts and keep scope narrow to GCC core only. Each thread must produce reproducible evidence, binary PASS/FAIL, and commit artifacts.
 
-**Tech Stack:** Bash, Docker/buildx, `.codex/multi-agent/*` prompt/result framework, `.agents/skills/cpp26-dev-image-build/scripts/build_images.sh`, `.agents/skills/cpp26-dev-image-validate/scripts/test_images.sh`, `.codex/multi-agent/scripts/ma_dev_image_gate.sh`.
+**Tech Stack:** Bash, Docker/buildx, `.codex/multi-agent/*` prompt/result framework, `tooling/scripts/build_cpp26_images.sh`, `.agents/skills/cpp26-dev-image-validate/scripts/test_images.sh`, `.codex/multi-agent/scripts/ma_dev_image_gate.sh`.
 
 ---
 
@@ -88,7 +88,7 @@ Expected: missing files/entries.
 Implement:
 - `MA-10.md` (Build GCC Core Dev Image)
   - Required path:
-    - `./.agents/skills/cpp26-dev-image-build/scripts/build_images.sh --toolchain gcc --flavor core --image-tag dev`
+    - `./tooling/scripts/build_cpp26_images.sh --toolchain gcc --flavor core --image-tag dev`
   - Required result file:
     - `.codex/multi-agent/results/MA-10-result.md`
   - Required sections and commit evidence.
@@ -149,7 +149,7 @@ Expected: missing image before build.
 
 Run MA-10 required command:
 ```bash
-./.agents/skills/cpp26-dev-image-build/scripts/build_images.sh --toolchain gcc --flavor core --image-tag dev
+./tooling/scripts/build_cpp26_images.sh --toolchain gcc --flavor core --image-tag dev
 ```
 
 Then:

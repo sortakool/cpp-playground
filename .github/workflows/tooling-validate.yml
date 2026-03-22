@@ -1,0 +1,39 @@
+name: tooling-validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  repo-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: jdx/mise-action@v2
+
+      - name: Install repo tools
+        run: |
+          mise trust .
+          mkdir -p "${RUNNER_TEMP}/mise"
+          MISE_GLOBAL_CONFIG_FILE="${RUNNER_TEMP}/mise/config.toml" \
+          MISE_IGNORED_CONFIG_PATHS="${HOME}/.config/mise" \
+          mise install --locked
+
+      - name: Install locked pixi environment
+        run: pixi install --locked
+
+      - name: Validate repo and runtime state
+        run: python3 -m tooling validate --mode all
+
+      - name: Run Python quality checks
+        run: |
+          pixi run ruff-check
+          pixi run ruff-format
+          pixi run ty-check

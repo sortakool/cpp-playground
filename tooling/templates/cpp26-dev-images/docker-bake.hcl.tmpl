@@ -1,0 +1,51 @@
+variable "IMAGE_TAG" {
+  default = "{{ .tooling.images.cpp26_dev_clang.default_tag }}"
+}
+
+variable "PLATFORM" {
+  default = "{{ .tooling.cpp26DevImages.platform_default }}"
+}
+
+variable "CLANG_IMAGE" {
+  default = "{{ .tooling.images.cpp26_dev_clang.repository }}"
+}
+
+variable "GCC_IMAGE" {
+  default = "{{ .tooling.images.cpp26_dev_gcc.repository }}"
+}
+
+variable "CLANG_QUANTLIB_IMAGE" {
+  default = "{{ .tooling.images.cpp26_dev_clang_quantlib.repository }}"
+}
+
+variable "CLANG_BASE_IMAGE" {
+  default = "{{ .tooling.images.cpp26_dev_clang.defaultRef }}"
+}
+
+group "default" {
+  targets = ["clang_core", "gcc_core"]
+}
+
+target "clang_core" {
+  context = "."
+  dockerfile = "Dockerfile.clang-p2996"
+  platforms = ["${PLATFORM}"]
+  tags = ["${CLANG_IMAGE}:${IMAGE_TAG}"]
+}
+
+target "gcc_core" {
+  context = "."
+  dockerfile = "Dockerfile.gcc-reflection"
+  platforms = ["${PLATFORM}"]
+  tags = ["${GCC_IMAGE}:${IMAGE_TAG}"]
+}
+
+target "clang_quantlib" {
+  context = "."
+  dockerfile = "Dockerfile.clang-p2996-quantlib"
+  platforms = ["${PLATFORM}"]
+  args = {
+    BASE_IMAGE = CLANG_BASE_IMAGE
+  }
+  tags = ["${CLANG_QUANTLIB_IMAGE}:${IMAGE_TAG}"]
+}

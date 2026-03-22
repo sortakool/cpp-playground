@@ -1,7 +1,7 @@
-ARG BASE_IMAGE=cpp26-dev-clang:latest
+ARG BASE_IMAGE={{ .tooling.images.cpp26_dev_clang.defaultRef }}
 FROM ${BASE_IMAGE}
 
-ARG QUANTLIB_VERSION=1.33
+ARG QUANTLIB_VERSION={{ .tooling.cpp26DevImages.quantlib_version }}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libboost-all-dev autoconf automake libtool && \
