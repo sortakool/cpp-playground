@@ -1,6 +1,7 @@
 {
   "name": "cpp-linux-amd64",
-  "image": "cpp-devcontainer:dev",
+  "image": "ghcr.io/ray-manaloto/cpp-devcontainer:dev",
+  "initializeCommand": "${localWorkspaceFolder}/.devcontainer/initialize-host.sh",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "remoteUser": "${localEnv:USER}",
@@ -14,6 +15,7 @@
   },
   "containerEnv": {
     "CPP_PLAYGROUND_HOST_USER": "${localEnv:USER}",
+    "CPP_PLAYGROUND_HOST_STATE_DIR": "/tmp/cpp-playground-host-state",
     "CMAKE_GENERATOR": "Ninja",
     "CCACHE_DIR": "/home/${localEnv:USER}/.cache/ccache",
     "SCCACHE_DIR": "/home/${localEnv:USER}/.cache/sccache",
@@ -22,7 +24,8 @@
     "UV_LINK_MODE": "copy"
   },
   "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/home/${localEnv:USER}/.local/share/mise/shims:/workspaces/${localWorkspaceFolderBasename}/.pixi/envs/default/bin"
+    "PATH": "${containerEnv:PATH}:/home/${localEnv:USER}/.local/share/mise/shims:/workspaces/${localWorkspaceFolderBasename}/.pixi/envs/default/bin",
+    "SSH_AUTH_SOCK": "/tmp/cpp-playground-ssh-agent.sock"
   },
   "runArgs": [
     "--platform=linux/amd64",
@@ -44,8 +47,9 @@
     "type=volume,src=gemini-home,target=/home/${localEnv:USER}/.gemini",
     "type=volume,src=gh-config,target=/home/${localEnv:USER}/.config/gh",
     "type=volume,src=devcontainer-local-state,target=/home/${localEnv:USER}/.local/state",
+    "type=bind,source=${localEnv:HOME}/.local/state/cpp-playground,target=/tmp/cpp-playground-host-state",
     "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
   ],
-  "postCreateCommand": "uv run -m tooling post-create",
-  "postStartCommand": "uv run -m tooling ensure-devcontainer-ssh"
+  "postCreateCommand": "PYTHONPATH=/workspaces/${localWorkspaceFolderBasename}/src python3 -m cpp_playground.devcontainer_runtime post-create",
+  "postStartCommand": "PYTHONPATH=/workspaces/${localWorkspaceFolderBasename}/src python3 -m cpp_playground.devcontainer_runtime ensure-ssh"
 }

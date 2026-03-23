@@ -69,8 +69,8 @@
       "displayName": "GCC reflection lane",
       "inherits": "base",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/local/bin/gcc-reflection",
-        "CMAKE_CXX_COMPILER": "/usr/local/bin/g++-reflection",
+        "CMAKE_C_COMPILER": "/opt/gcc-reflection/bin/gcc",
+        "CMAKE_CXX_COMPILER": "/opt/gcc-reflection/bin/g++",
         "CMAKE_CXX_STANDARD": "26"
       }
     },
@@ -79,8 +79,8 @@
       "displayName": "clang-p2996 lane",
       "inherits": "base",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/usr/local/bin/clang-p2996",
-        "CMAKE_CXX_COMPILER": "/usr/local/bin/clang-p2996++",
+        "CMAKE_C_COMPILER": "/opt/clang-p2996/bin/clang",
+        "CMAKE_CXX_COMPILER": "/opt/clang-p2996/bin/clang++",
         "CMAKE_CXX_STANDARD": "26",
         "CMAKE_CXX_FLAGS_INIT": "-freflection -freflection-latest -fexpansion-statements -stdlib=libc++",
         "CMAKE_EXE_LINKER_FLAGS_INIT": "-stdlib=libc++"

@@ -1,0 +1,64 @@
+# syntax=docker/dockerfile:1.7
+
+ARG BASE_IMAGE=ghcr.io/ray-manaloto/cpp-devcontainer:dev
+FROM ${BASE_IMAGE}
+
+USER root
+
+ARG DEVCONTAINER_USERNAME=devcontainer
+
+RUN case "${DEVCONTAINER_USERNAME}" in \
+      ""|root) \
+        echo "DEVCONTAINER_USERNAME must be a non-root short username" >&2 && \
+        exit 1 \
+        ;; \
+      *[!A-Za-z0-9._-]*) \
+        echo "DEVCONTAINER_USERNAME contains unsupported characters: ${DEVCONTAINER_USERNAME}" >&2 && \
+        exit 1 \
+        ;; \
+    esac && \
+    devcontainer_home="/home/${DEVCONTAINER_USERNAME}" && \
+    if ! id -u "${DEVCONTAINER_USERNAME}" >/dev/null 2>&1; then \
+      existing_group="$(getent group 1000 || true)"; \
+      existing_group="${existing_group%%:*}"; \
+      if getent group "${DEVCONTAINER_USERNAME}" >/dev/null 2>&1; then \
+        group_name="${DEVCONTAINER_USERNAME}"; \
+      elif [ -n "${existing_group}" ]; then \
+        groupmod -n "${DEVCONTAINER_USERNAME}" "${existing_group}"; \
+        group_name="${DEVCONTAINER_USERNAME}"; \
+      else \
+        groupadd --gid 1000 "${DEVCONTAINER_USERNAME}"; \
+        group_name="${DEVCONTAINER_USERNAME}"; \
+      fi; \
+      existing_user="$(getent passwd 1000 || true)"; \
+      existing_user="${existing_user%%:*}"; \
+      if [ -n "${existing_user}" ]; then \
+        usermod --gid "${group_name}" --login "${DEVCONTAINER_USERNAME}" --home "${devcontainer_home}" --move-home "${existing_user}"; \
+      else \
+        useradd --uid 1000 --gid "${group_name}" --create-home --home-dir "${devcontainer_home}" --shell /bin/sh "${DEVCONTAINER_USERNAME}"; \
+      fi; \
+    fi && \
+    usermod --append --groups sudo "${DEVCONTAINER_USERNAME}" && \
+    printf '%s ALL=(ALL) NOPASSWD:ALL\n' "${DEVCONTAINER_USERNAME}" >"/etc/sudoers.d/${DEVCONTAINER_USERNAME}" && \
+    chmod 0440 "/etc/sudoers.d/${DEVCONTAINER_USERNAME}" && \
+    chown -R "${DEVCONTAINER_USERNAME}:${DEVCONTAINER_USERNAME}" "${devcontainer_home}" && \
+    install -d -o "${DEVCONTAINER_USERNAME}" -g "${DEVCONTAINER_USERNAME}" \
+      "${devcontainer_home}/.cache/ccache" \
+      "${devcontainer_home}/.cache/mise" \
+      "${devcontainer_home}/.cache/uv" \
+      "${devcontainer_home}/.config/gh" \
+      "${devcontainer_home}/.local/bin" \
+      "${devcontainer_home}/.local/share/mise" \
+      "${devcontainer_home}/.local/state" \
+      "${devcontainer_home}/.pixi" \
+      "${devcontainer_home}/.ssh"
+
+ENV DEVCONTAINER_USERNAME=${DEVCONTAINER_USERNAME} \
+    DEVCONTAINER_HOME=/home/${DEVCONTAINER_USERNAME} \
+    HOME=/home/${DEVCONTAINER_USERNAME} \
+    CCACHE_DIR=/home/${DEVCONTAINER_USERNAME}/.cache/ccache \
+    MISE_CACHE_DIR=/home/${DEVCONTAINER_USERNAME}/.cache/mise \
+    PATH=/home/${DEVCONTAINER_USERNAME}/.local/bin:/opt/clang-p2996/bin:/opt/gcc-reflection/bin:/opt/llvm/current/bin:/opt/mise/shims:${PATH}
+
+USER ${DEVCONTAINER_USERNAME}
+WORKDIR /workspaces

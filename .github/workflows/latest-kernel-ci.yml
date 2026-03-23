@@ -24,6 +24,7 @@ jobs:
         run: |
           mise trust .
           mkdir -p "${RUNNER_TEMP}/mise"
+          : > "${RUNNER_TEMP}/mise/config.toml"
           MISE_GLOBAL_CONFIG_FILE="${RUNNER_TEMP}/mise/config.toml" \
           MISE_IGNORED_CONFIG_PATHS="${HOME}/.config/mise" \
           mise install --locked
@@ -31,5 +32,11 @@ jobs:
       - name: Install locked pixi environment
         run: pixi install --locked
 
-      - name: Prove latest-kernel surface
-        run: sudo --preserve-env=PATH,HOME python3 -m tooling prove --surface latest-kernel-ci
+      - name: Configure host kernel test lane
+        run: pixi run -e gcc-stable cmake --preset gcc-stable
+
+      - name: Build host kernel test lane
+        run: pixi run -e gcc-stable cmake --build --preset gcc-stable
+
+      - name: Run kernel-labeled tests
+        run: pixi run -e gcc-stable sudo --preserve-env=PATH,HOME ctest --test-dir out/build/gcc-stable --output-on-failure -L kernel

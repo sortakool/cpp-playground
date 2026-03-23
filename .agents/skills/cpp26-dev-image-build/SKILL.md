@@ -5,7 +5,7 @@ description: Build and update pinned Ubuntu x86_64 C++26 reflection Docker image
 
 # C++26 Dev Image Build
 
-Build and refresh pinned C++26 reflection development images targeting `linux/amd64` from macOS or Linux hosts.
+Build and refresh pinned C++26 reflection development images targeting `linux/amd64`.
 
 ## Use This Skill For
 
@@ -22,26 +22,22 @@ Build and refresh pinned C++26 reflection development images targeting `linux/am
 ## Workflow
 
 1. Read `tooling/tool-version-manifest.json` and keep the `cpp26_dev_images` pins authoritative.
-2. Build image targets with `python3 -m tooling build-cpp26-images`.
-3. Check upstream pin drift with `python3 -m tooling check-cpp26-toolchain-pins`.
-4. Bump pins explicitly with `python3 -m tooling bump-cpp26-toolchain-pins`.
-5. Delegate runtime verification to `$cpp26-dev-image-validate`.
-6. Delegate publishing/sync to `$cpp26-dev-image-publish`.
+2. Build toolchain stages via Bake from root `Dockerfile`.
+3. Keep clang/gcc stage builds parallel from `base`.
+4. Delegate runtime verification to `$cpp26-dev-image-validate`.
+5. Delegate publishing/sync to `$cpp26-dev-image-publish`.
 
 ## Commands
 
 ```bash
-# Build all core images locally
-python3 -m tooling build-cpp26-images --toolchain all --flavor core
+# Inspect image targets
+docker buildx bake -f docker-bake.hcl --list=targets
 
-# Build clang quantlib variant
-python3 -m tooling build-cpp26-images --toolchain clang --flavor quantlib --image-tag dev
+# Build compiler lanes in parallel
+docker buildx bake -f docker-bake.hcl clang gcc
 
-# Check if pins are stale
-python3 -m tooling check-cpp26-toolchain-pins
-
-# Update lock file pins to latest branch heads
-python3 -m tooling bump-cpp26-toolchain-pins
+# Build final and devcontainer surfaces
+docker buildx bake -f docker-bake.hcl final devcontainer
 ```
 
 ## Outputs

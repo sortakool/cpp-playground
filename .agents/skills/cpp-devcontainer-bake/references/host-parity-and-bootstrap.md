@@ -1,107 +1,53 @@
 # Host Parity And Bootstrap
 
-Use this note when the task involves host bootstrap, user parity, SSH-agent forwarding, `gh` auth, or the split between `chezmoi`, `mise`, `pixi`, and the devcontainer hooks.
+Use this note when the task touches host bootstrap, username parity, SSH-agent forwarding, or devcontainer runtime hooks.
 
 ## Ownership Split
 
-- `chezmoi`: host bootstrap, shell setup, and host-local machine configuration
-- `mise.toml`: repo-owned CLI pins and env redaction rules
-- `mise.local.toml`: gitignored local-only overrides and secrets
-- `pixi.toml`: locked repo environments and named tasks
-- `.devcontainer/Dockerfile`: baked-in toolchain and runtime dependencies
-- `.devcontainer/devcontainer.json`: runtime wiring, mounts, `remoteUser`, `postCreateCommand`, `postStartCommand`
-- `tooling/control_plane.py`: orchestration and validation
+- `home/` with `chezmoi` `dot_` naming: host bootstrap and host-scoped config state.
+- root `Dockerfile` + `docker-bake.hcl`: image and stage topology.
+- `.devcontainer/devcontainer.json`: runtime wiring and hook invocation.
+- minimal Python helpers: bootstrap finalization, verification, and devcontainer runtime helpers.
 
-Do not collapse these layers into one file or one command.
+Do not collapse these layers into one command or one file.
 
-## Host Username Parity
+## User And SSH Contract
 
-The primary container user tracks the host short username.
+- Devcontainer user remains dynamic and host-aligned.
+- SSH runtime helper behavior remains enabled in container lifecycle hooks.
+- Host SSH agents are forwarded without copying private keys.
+- On macOS with Docker Desktop, do not expect a bind-mounted host UNIX socket to work directly inside the Linux container. The checked-in flow is:
+  - host launchd SSH socket -> host-local TCP proxy under `~/.local/state/cpp-playground/`
+  - `host.docker.internal:<port>` -> container-local UNIX socket `/tmp/cpp-playground-ssh-agent.sock`
+- `gh` token parity is not part of the SSH contract. Host `gh` auth may be backed by the macOS keychain and stay unavailable inside the container.
 
-That design affects:
+## Bootstrap And Verify
 
-- the image build
-- `remoteUser`
-- named-volume mount targets under `/home/${localEnv:USER}`
-- host-local SSH login on `127.0.0.1:2222`
-- post-create validation
-
-If the container user and `CPP_PLAYGROUND_HOST_USER` diverge, `python3 -m tooling post-create` fails and explicitly tells the caller to rebuild the image on the host.
-
-## macOS CLI Path
-
-Canonical host-side CLI flow:
+Use:
 
 ```bash
-python3 -m tooling build-devcontainer-image
-python3 -m tooling host-preflight-macos
-python3 -m tooling devcontainer-up-macos
-python3 -m tooling sync-devcontainer-ssh-known-hosts
-python3 -m tooling smoke-ssh-into-devcontainer
-ssh -p 2222 "${USER}@127.0.0.1"
+./install.sh
+uv run finalize-bootstrap
+uv run verify run
 ```
 
-`devcontainer-up-macos` mounts Docker Desktop's host-services SSH socket and sets `SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock` inside the container.
+Do not replace this with legacy control-plane flows.
 
-## Editor Path
+For SSH-specific validation after lifecycle or runtime changes, use:
 
-For VS Code or CLion devcontainer flows:
+```bash
+python3 -m cpp_playground.devcontainer_runtime smoke-ssh
+```
 
-- build the image first
-- let the editor handle container creation and SSH-agent integration
-- rely on the same checked-in `postCreateCommand` and `postStartCommand`
-- run the same in-container smoke checks after attach
+On macOS hosts whose current shell does not export `SSH_AUTH_SOCK`, wrap host-side checks with:
 
-Do not create a second editor-specific bootstrap path unless the user is intentionally changing the product workflow.
+```bash
+SSH_AUTH_SOCK="$(launchctl getenv SSH_AUTH_SOCK)" ssh-add -l
+SSH_AUTH_SOCK="$(launchctl getenv SSH_AUTH_SOCK)" ssh -T git@github.com
+```
 
-## In-Container Hooks
+## Security Notes
 
-`postCreateCommand`:
-
-- runs `python3 -m tooling post-create`
-- ensures home-directory mounts exist for the current user
-- seeds GitHub SSH host keys
-- runs `bootstrap()`
-
-`postStartCommand`:
-
-- runs `python3 -m tooling ensure-devcontainer-ssh`
-- manages container SSH host keys
-- syncs `authorized_keys` from `ssh-add -L` when the host agent is available
-- starts `sshd`
-
-Prefer these checked-in hooks over ad-hoc shell scripts.
-
-## Secrets And Auth
-
-Preferred options:
-
-- gitignored `mise.local.toml`
-- `doppler run -- ...` for short-lived secret injection
-
-Do not:
-
-- mount host `~/.ssh`
-- mount host credential stores
-- mount host `$HOME`
-- store long-lived tokens in `devcontainer.json`
-
-`gh` auth persists in the named `gh-config` volume under `/home/${USER}/.config/gh`.
-
-## Best-Practice Adaptation
-
-Reviewed generic devcontainer skills commonly recommend:
-
-- root users
-- blanket bind mounts of host config
-- generated `docker-compose.yml`
-- large `setup.sh` scripts for all tooling
-
-For this repo, the better adaptation is:
-
-- non-root host-username parity
-- named volumes for agent tool homes and caches
-- SSH-agent socket forwarding instead of key copying
-- baked-in durable toolchain content
-- post-create bootstrap for repo state
-- post-start startup for SSH service state
+- Keep non-root runtime user defaults.
+- Do not mount host `~/.ssh`, host credential stores, or full host `$HOME`.
+- Do not store long-lived tokens in devcontainer config.

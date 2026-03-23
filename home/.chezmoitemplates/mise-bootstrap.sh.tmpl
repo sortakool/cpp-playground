@@ -1,0 +1,91 @@
+#!/bin/sh
+set -eu
+
+fail() {
+  printf '%s\n' "cpp-playground: $*" >&2
+  exit 1
+}
+
+default_bin_dir() {
+  if [ -n "${BIN_DIR:-}" ]; then
+    printf '%s\n' "$BIN_DIR"
+    return
+  fi
+  if [ -w /usr/local/bin ] || { [ ! -e /usr/local/bin ] && [ -w /usr/local ]; }; then
+    printf '%s\n' /usr/local/bin
+    return
+  fi
+  printf '%s\n' "$HOME/.local/bin"
+}
+
+repo_root=${CPP_PLAYGROUND_REPO_ROOT:-}
+[ -n "$repo_root" ] || fail "CPP_PLAYGROUND_REPO_ROOT must be set"
+[ -f "$repo_root/docker-bake.hcl" ] || fail "missing docker-bake.hcl"
+
+mise_version=$(
+  awk '
+    $1 == "variable" && $2 == "\"MISE_VERSION\"" { in_block = 1; next }
+    in_block && $1 == "default" { gsub(/"/, "", $3); print $3; exit }
+    in_block && $1 == "}" { in_block = 0 }
+  ' "$repo_root/docker-bake.hcl"
+)
+[ -n "$mise_version" ] || fail "unable to determine MISE_VERSION from docker-bake.hcl"
+
+case "$(uname -s)" in
+  Linux) os=linux ;;
+  *) fail "unsupported operating system: $(uname -s)" ;;
+esac
+
+case "$(uname -m)" in
+  x86_64|amd64) arch=x64 ;;
+  aarch64|arm64) arch=arm64 ;;
+  *) fail "unsupported architecture: $(uname -m)" ;;
+esac
+
+download() {
+  url=$1
+  output=$2
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$url" -o "$output"
+    return
+  fi
+  if command -v wget >/dev/null 2>&1; then
+    wget -qO "$output" "$url"
+    return
+  fi
+  fail "curl or wget is required"
+}
+
+tmp_dir=$(mktemp -d "${TMPDIR:-/tmp}/mise-bootstrap.XXXXXX")
+cleanup() {
+  rm -rf "$tmp_dir"
+}
+trap cleanup EXIT HUP INT TERM
+
+bin_dir=$(default_bin_dir)
+mkdir -p "$bin_dir"
+case ":$PATH:" in
+  *:"$bin_dir":*) ;;
+  *) PATH=$bin_dir:$PATH ;;
+esac
+export PATH
+
+download \
+  "https://github.com/jdx/mise/releases/download/v${mise_version}/mise-v${mise_version}-${os}-${arch}" \
+  "$tmp_dir/mise"
+install -m 0755 "$tmp_dir/mise" "$bin_dir/mise"
+
+empty_global_config="$tmp_dir/mise-config.toml"
+: >"$empty_global_config"
+
+export MISE_CACHE_DIR="${MISE_CACHE_DIR:-$HOME/.cache/mise}"
+export MISE_DATA_DIR="${MISE_DATA_DIR:-$HOME/.local/share/mise}"
+export MISE_GLOBAL_CONFIG_FILE="$empty_global_config"
+export MISE_IGNORED_CONFIG_PATHS="${MISE_IGNORED_CONFIG_PATHS:-$HOME/.config/mise}"
+
+mkdir -p "$MISE_CACHE_DIR" "$MISE_DATA_DIR"
+
+cd "$repo_root"
+"$bin_dir/mise" trust "$repo_root"
+"$bin_dir/mise" install --locked
+"$bin_dir/mise" reshim

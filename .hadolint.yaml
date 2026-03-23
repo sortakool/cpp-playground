@@ -1,0 +1,4 @@
+ignored:
+  # The repo pins package state through immutable distro snapshots rather than
+  # per-package apt version strings.
+  - DL3008

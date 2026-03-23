@@ -1,6 +1,6 @@
 ---
 name: python-pixi-astral-toolchain
-description: Repository-local hub for the Python, Pixi, and Astral toolchain in this repo. Use when working on Python files, `pyproject.toml`, `uv.lock`, `.python-version`, `pixi.toml`, `mise.toml`, `.devcontainer/devcontainer.json`, Ruff or Ty config, `tooling/control_plane.py`, bootstrap or prove flows, or any Python, Pixi, uv, devcontainer, chezmoi, or mise quality-gate task in this repository.
+description: Repository-local hub for the Python, Pixi, and Astral toolchain in this repo. Use when working on Python files, `pyproject.toml`, `uv.lock`, `.python-version`, `pixi.toml`, `mise.toml`, `.devcontainer/devcontainer.json`, and minimal Python helper flows (`finalize-bootstrap`, `verify run`, devcontainer runtime helpers).
 ---
 
 # Python Pixi Astral Toolchain
@@ -43,7 +43,7 @@ Load it when the task touches:
 - `pixi.lock`
 - `mise.toml`
 - `.devcontainer/devcontainer.json`
-- `tooling/control_plane.py`
+- root `Dockerfile` or `docker-bake.hcl` build-interface coordination
 - bootstrap, refresh, validate, or prove flows
 - devcontainer PATH, mounts, image bootstrap, or environment tasks
 - host-side `chezmoi` / `mise` / `pixi` interaction for this repo
@@ -78,11 +78,10 @@ Load it when the task touches:
 Prefer the repo-defined commands first:
 
 ```bash
-python3 -m tooling validate --mode repo
-python3 -m tooling validate --mode runtime
+uv run finalize-bootstrap
+uv run verify run
 pixi run ruff-check
 pixi run ty-check
-pixi run prove-devcontainer
 ```
 
 For kernel-sensitive work, follow `docs/latest-kernel-testing.md` instead of assuming the devcontainer owns the kernel.

@@ -1,0 +1,160 @@
+[[suite]]
+name = "cleanup.one-dockerfile"
+description = "The repo keeps the single root build Dockerfile plus the thin devcontainer host-user overlay."
+requires_commands = ["python3"]
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\ndockerfiles = sorted(str(path) for path in Path('.').rglob('Dockerfile*') if path.is_file() and '.git/' not in str(path))\nexpected = ['.devcontainer/Dockerfile.host-user', 'Dockerfile']\nif dockerfiles != expected:\n    raise SystemExit(f'unexpected Dockerfile set: {dockerfiles}')\nprint('dockerfile surface ok')\nPY",
+]
+
+[[suite]]
+name = "cleanup.no-control-plane"
+description = "The old Python control plane and split Dockerfile graph are gone."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\nfor path in (\n    Path('tooling'),\n    Path('.devcontainer/Dockerfile'),\n    Path('tooling/cpp26-dev-images/Dockerfile.clang-p2996'),\n    Path('tooling/cpp26-dev-images/Dockerfile.gcc-reflection'),\n    Path('tooling/cpp26-dev-images/Dockerfile.clang-p2996-quantlib'),\n    Path('home/.chezmoiscripts'),\n):\n    if path.exists():\n        raise SystemExit(f'legacy path still exists: {path}')\nprint('legacy control-plane paths removed')\nPY",
+]
+
+[[suite]]
+name = "cleanup.no-generated-artifacts"
+description = "Tracked cache, bytecode, egg-info, and ad-hoc log artifacts are gone."
+requires_commands = ["python3"]
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\nignored_prefixes = ('.git/', '.pixi/', '.venv/', 'out/', 'src/cpp_playground/__pycache__/')\nbad = []\nfor path in Path('.').rglob('*'):\n    if not path.exists() or not path.is_file():\n        continue\n    text = str(path)\n    if text.startswith(ignored_prefixes):\n        continue\n    if '__pycache__/' in text or text.endswith('.pyc') or '.egg-info/' in text or text == 'firebase-debug.log':\n        bad.append(text)\nif bad:\n    raise SystemExit(f'generated artifacts still present: {bad}')\nprint('generated artifacts absent from repo-owned worktree paths')\nPY",
+]
+
+[[suite]]
+name = "cleanup.chezmoi-dot-naming"
+description = "Managed chezmoi target paths under home use dot_ naming."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\nroot = Path('home')\nallowed = {'.chezmoi.toml.tmpl', '.chezmoitemplates', '.chezmoidata'}\nfor path in root.iterdir():\n    if path.name in allowed:\n        continue\n    if path.name.startswith('.'):\n        raise SystemExit(f'raw dotfile path is not allowed under home/: {path}')\nprint('chezmoi dot_ naming ok')\nPY",
+]
+
+[[suite]]
+name = "cleanup.no-duplicate-orchestration"
+description = "mise, pixi, and Python no longer expose the old orchestration surface."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\nfor file_name in ('mise.toml', 'pixi.toml', 'pyproject.toml'):\n    text = Path(file_name).read_text()\n    for token in (\n        'build-devcontainer-image',\n        'build-cpp26-images',\n        'refresh',\n        'sync-generated',\n        'validate-runtime',\n        'validate-repo',\n        'validate-docker-images',\n        'devcontainer-up-macos',\n        'host-preflight-macos',\n        'smoke-ssh-into-devcontainer',\n        'sync-devcontainer-ssh-known-hosts',\n        'python3 -m tooling',\n        'uv run -m tooling',\n    ):\n        if token in text:\n            raise SystemExit(f'legacy orchestration token still present in {file_name}: {token}')\nprint('duplicate orchestration removed')\nPY",
+]
+
+[[suite]]
+name = "image.stage-names.exact"
+description = "The root Dockerfile exposes the exact canonical stage names."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\ntext = Path('Dockerfile').read_text().splitlines()\nstages = [line.split(' AS ', 1)[1].strip() for line in text if line.startswith('FROM ') and ' AS ' in line]\nexpected = ['base', 'clang', 'gcc', 'final', 'devcontainer']\nif stages != expected:\n    raise SystemExit(f'unexpected stage order: {stages}')\nprint('stage names ok')\nPY",
+]
+
+[[suite]]
+name = "image.bake-targets"
+description = "Bake exposes the expected target and group surface."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\ntext = Path('docker-bake.hcl').read_text()\nfor token in ('dockerfile = \"Dockerfile\"', 'target \"base\"', 'target \"clang\"', 'target \"gcc\"', 'target \"final\"', 'target \"devcontainer\"', 'group \"toolchains\"', 'group \"default\"'):\n    if token not in text:\n        raise SystemExit(f'missing bake token: {token}')\nprint('bake targets ok')\nPY",
+]
+
+[[suite]]
+name = "image.bake-print.devcontainer"
+description = "Resolved Bake output still points at the single root Dockerfile."
+requires_commands = ["docker", "python3"]
+commands = [
+  "python3 - <<'PY'\nimport json\nimport subprocess\npayload = json.loads(subprocess.check_output(['docker', 'buildx', 'bake', '-f', 'docker-bake.hcl', '--print', 'devcontainer'], text=True))\ntarget = payload['target']['devcontainer']\nif target.get('dockerfile') != 'Dockerfile':\n    raise SystemExit(f\"unexpected dockerfile: {target.get('dockerfile')}\")\nif target.get('context') != '.':\n    raise SystemExit(f\"unexpected context: {target.get('context')}\")\nprint('bake print uses root Dockerfile')\nPY",
+]
+
+[[suite]]
+name = "image.bake-native-check"
+description = "Buildx native static checks pass across the canonical Bake targets."
+requires_commands = ["docker", "pixi"]
+commands = [
+  "pixi run docker-bake-check",
+]
+
+[[suite]]
+name = "image.dockerfile-hadolint"
+description = "Hadolint accepts the Dockerfile under the repo's snapshot-pinned package policy."
+requires_commands = ["docker", "pixi"]
+commands = [
+  "pixi run dockerfile-lint",
+]
+
+[[suite]]
+name = "image.parallel-toolchains"
+description = "clang and gcc build from base without depending on each other."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\ntext = Path('Dockerfile').read_text()\nif 'FROM base AS clang' not in text or 'FROM base AS gcc' not in text:\n    raise SystemExit('clang and gcc must both derive from base')\nfor bad in ('FROM clang AS gcc', 'FROM gcc AS clang', 'COPY --from=clang /opt/clang-p2996 /opt/gcc-reflection', 'COPY --from=gcc /opt/gcc-reflection /opt/clang-p2996'):\n    if bad in text:\n        raise SystemExit(f'forbidden cross-stage dependency found: {bad}')\nprint('parallel toolchain structure ok')\nPY",
+]
+
+[[suite]]
+name = "image.repo-bootstrap-after-toolchains"
+description = "Repo copy and bootstrap happen in final so devcontainer/runtime edits do not force toolchain rebuilds."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\ntext = Path('Dockerfile').read_text()\nbase_segment = text.split('FROM base AS clang', 1)[0]\nfinal_segment = text.split('FROM base AS final', 1)[1]\nfor forbidden in ('COPY . /opt/cpp-playground', '/opt/cpp-playground/install.sh'):\n    if forbidden in base_segment:\n        raise SystemExit(f'base stage still includes repo bootstrap token: {forbidden}')\nfor required in ('COPY . /opt/cpp-playground', 'RUN chmod +x /opt/cpp-playground/install.sh', '/opt/cpp-playground/install.sh'):\n    if required not in final_segment:\n        raise SystemExit(f'final stage missing repo bootstrap token: {required}')\nprint('repo bootstrap is scoped to final')\nPY",
+]
+
+[[suite]]
+name = "image.final.includes-both-toolchains"
+description = "The final stage materializes both reflection toolchains."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\ntext = Path('Dockerfile').read_text()\nrequired = (\n    'FROM base AS final',\n    'COPY --from=clang /opt/clang-p2996 /opt/clang-p2996',\n    'COPY --from=gcc /opt/gcc-reflection /opt/gcc-reflection',\n)\nfor token in required:\n    if token not in text:\n        raise SystemExit(f'missing final-stage token: {token}')\nprint('final stage includes both toolchains')\nPY",
+]
+
+[[suite]]
+name = "bootstrap.install-entrypoint"
+description = "The POSIX install entrypoint and chezmoi bootstrap template exist and stay non-interactive."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\ninstall = Path('install.sh').read_text()\nmise = Path('mise.toml').read_text()\nif 'read ' in install or 'sudo ' in install:\n    raise SystemExit('install.sh must stay non-interactive and avoid sudo prompts')\nif 'mise exec -- python' in install:\n    raise SystemExit('install.sh must use system python3 for bootstrap helpers')\nif 'python =' in mise:\n    raise SystemExit('mise.toml must not pin python; uv/system python own the repo python surface')\nfor path in (Path('install.sh'), Path('.chezmoiversion'), Path('home/.chezmoitemplates/mise-bootstrap.sh.tmpl')):\n    if not path.exists():\n        raise SystemExit(f'missing bootstrap path: {path}')\nprint('bootstrap entrypoint surface ok')\nPY",
+]
+
+[[suite]]
+name = "bootstrap.python-surface"
+description = "Only the minimal Python command modules remain."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\nroot = Path('src/cpp_playground')\nexpected = {'__init__.py', 'devcontainer_runtime.py', 'finalize_bootstrap.py', 'verify.py'}\nactual = {path.name for path in root.iterdir() if path.is_file()}\nif actual != expected:\n    raise SystemExit(f'unexpected python surface: {sorted(actual)}')\nprint('minimal python surface ok')\nPY",
+]
+
+[[suite]]
+name = "bootstrap.console-scripts"
+description = "pyproject exposes only the narrow helper command surface."
+commands = [
+  "python3 - <<'PY'\nimport tomllib\nfrom pathlib import Path\nscripts = tomllib.loads(Path('pyproject.toml').read_text())['project']['scripts']\nexpected = {'devcontainer-runtime', 'finalize-bootstrap', 'verify'}\nif set(scripts) != expected:\n    raise SystemExit(f'unexpected console scripts: {sorted(scripts)}')\nprint('console scripts ok')\nPY",
+]
+
+[[suite]]
+name = "devcontainer.runtime-hooks"
+description = "The devcontainer uses the thin Python runtime hooks."
+commands = [
+  "python3 - <<'PY'\nimport json\nfrom pathlib import Path\nconfig = json.loads(Path('.devcontainer/devcontainer.json').read_text())\npost_create = config.get('postCreateCommand', '')\npost_start = config.get('postStartCommand', '')\nif 'cpp_playground.devcontainer_runtime post-create' not in post_create:\n    raise SystemExit(f'unexpected postCreateCommand: {post_create}')\nif 'cpp_playground.devcontainer_runtime ensure-ssh' not in post_start:\n    raise SystemExit(f'unexpected postStartCommand: {post_start}')\nprint('devcontainer hooks ok')\nPY",
+]
+
+[[suite]]
+name = "devcontainer.host-user-and-ssh-wiring"
+description = "The initialize step uses a thin host-user overlay and runtime mounts keep host username parity and a stable SSH agent path."
+commands = [
+  "python3 - <<'PY'\nimport json\nfrom pathlib import Path\nconfig = json.loads(Path('.devcontainer/devcontainer.json').read_text())\ninit = config.get('initializeCommand', '')\nif '.devcontainer/initialize-host.sh' not in init:\n    raise SystemExit(f'unexpected initializeCommand: {init}')\nmount = 'type=bind,source=${localEnv:HOME}/.local/state/cpp-playground,target=/tmp/cpp-playground-host-state'\nif mount not in config.get('mounts', []):\n    raise SystemExit('missing host state bind mount')\ncontainer_env = config.get('containerEnv', {})\nif container_env.get('CPP_PLAYGROUND_HOST_STATE_DIR') != '/tmp/cpp-playground-host-state':\n    raise SystemExit(f\"unexpected CPP_PLAYGROUND_HOST_STATE_DIR: {container_env.get('CPP_PLAYGROUND_HOST_STATE_DIR')}\")\nremote_env = config.get('remoteEnv', {})\nif remote_env.get('SSH_AUTH_SOCK') != '/tmp/cpp-playground-ssh-agent.sock':\n    raise SystemExit(f\"unexpected remote SSH_AUTH_SOCK: {remote_env.get('SSH_AUTH_SOCK')}\")\ninit_script = Path('.devcontainer/initialize-host.sh')\noverlay = Path('.devcontainer/Dockerfile.host-user')\nproxy = Path('.devcontainer/ssh_agent_proxy.py')\nif not init_script.exists():\n    raise SystemExit('missing .devcontainer/initialize-host.sh')\nif not overlay.exists():\n    raise SystemExit('missing .devcontainer/Dockerfile.host-user')\nif not proxy.exists():\n    raise SystemExit('missing .devcontainer/ssh_agent_proxy.py')\nscript = init_script.read_text()\nif 'Dockerfile.host-user' not in script:\n    raise SystemExit('initialize-host.sh must build the thin host-user overlay')\nif 'ssh_agent_proxy.py' not in script:\n    raise SystemExit('initialize-host.sh must manage the SSH agent proxy')\nif 'ssh-agent-port' not in script or '--listen-tcp' not in script:\n    raise SystemExit('initialize-host.sh must publish the host SSH agent over a localhost TCP proxy')\nif 'docker image inspect \"${devcontainer_image}\"' not in script:\n    raise SystemExit('initialize-host.sh must prefer the locally available upstream image')\nif 'docker buildx build' not in script:\n    raise SystemExit('initialize-host.sh must build the thin overlay image')\nprint('devcontainer host user and ssh wiring ok')\nPY",
+]
+
+[[suite]]
+name = "devcontainer.image-reference"
+description = "The devcontainer runtime uses the fully-qualified first Bake tag."
+requires_commands = ["docker", "python3"]
+commands = [
+  "python3 - <<'PY'\nimport json\nimport subprocess\nfrom pathlib import Path\nconfig = json.loads(Path('.devcontainer/devcontainer.json').read_text())\npayload = json.loads(subprocess.check_output(['docker', 'buildx', 'bake', '-f', 'docker-bake.hcl', '--print', 'devcontainer'], text=True))\nimage = config.get('image')\nfirst_tag = payload['target']['devcontainer']['tags'][0]\nif image != first_tag:\n    raise SystemExit(f'devcontainer image {image!r} does not match first bake tag {first_tag!r}')\nif not image.startswith('ghcr.io/'):\n    raise SystemExit(f'devcontainer image must be fully qualified: {image!r}')\nprint('devcontainer image reference ok')\nPY",
+]
+
+[[suite]]
+name = "devcontainer.from-final"
+description = "The devcontainer stage stays a thin wrapper over final."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\ntext = Path('Dockerfile').read_text()\nif 'FROM final AS devcontainer' not in text:\n    raise SystemExit('devcontainer must derive directly from final')\nprint('devcontainer derives from final')\nPY",
+]
+
+[[suite]]
+name = "devcontainer.runtime-packages-only"
+description = "The devcontainer stage installs only runtime support packages."
+commands = [
+  "python3 - <<'PY'\nfrom pathlib import Path\ntext = Path('Dockerfile').read_text()\nstart = text.index('FROM final AS devcontainer')\nsegment = text[start:]\nfor required in ('openssh-client', 'openssh-server', 'sudo'):\n    if required not in segment:\n        raise SystemExit(f'missing devcontainer runtime package: {required}')\nfor forbidden in ('/opt/cpp-playground/install.sh', 'git init clang-p2996', 'git init gcc-reflection', 'cmake -G Ninja ../llvm', '../configure'):\n    if forbidden in segment:\n        raise SystemExit(f'forbidden devcontainer build token found: {forbidden}')\nprint('devcontainer runtime package set ok')\nPY",
+]
+
+[[suite]]
+name = "docs.no-legacy-build-surface"
+description = "Primary docs and repo skills no longer point at the deleted control plane or old Dockerfiles."
+requires_commands = ["rg"]
+commands = [
+  "! rg -n 'tooling/control_plane\\.py|\\.devcontainer/Dockerfile([[:space:]]|$|\"|\\)|,)|tooling/cpp26-dev-images|python3 -m tooling|uv run -m tooling|mise run prove-devcontainer|devcontainer-up-macos|host-preflight-macos|smoke-ssh-into-devcontainer|sync-devcontainer-ssh-known-hosts' README.md docs .agents/skills AGENTS.md CLAUDE.md",
+]

@@ -1,4 +1,4 @@
-name: tooling-validate
+name: repo-verify
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  repo-validate:
+  repo-verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -22,18 +22,21 @@ jobs:
         run: |
           mise trust .
           mkdir -p "${RUNNER_TEMP}/mise"
+          : > "${RUNNER_TEMP}/mise/config.toml"
           MISE_GLOBAL_CONFIG_FILE="${RUNNER_TEMP}/mise/config.toml" \
           MISE_IGNORED_CONFIG_PATHS="${HOME}/.config/mise" \
           mise install --locked
 
+      - name: Install Python helper environment
+        run: uv sync --locked --group dev
+
       - name: Install locked pixi environment
         run: pixi install --locked
 
-      - name: Validate repo and runtime state
-        run: python3 -m tooling validate --mode all
+      - name: Run repo verification
+        run: uv run verify run
 
-      - name: Run Python quality checks
+      - name: Run quality checks
         run: |
           pixi run ruff-check
-          pixi run ruff-format
           pixi run ty-check

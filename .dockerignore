@@ -1,0 +1,9 @@
+.codex/
+.git/
+.github/
+.venv/
+__pycache__/
+*.egg-info/
+*.pyc
+firebase-debug.log
+out/

@@ -1,86 +1,11 @@
-redactions = ["*_API_KEY", "*_TOKEN", "*_SECRET*", "*_PASSWORD"]
-
-[settings]
-task.output = "prefix"
-
 [tools]
-node = "25.8.1"
-python = "3.12"
-uv = "0.10.12"
-pixi = "0.66.0"
-gh = "2.88.1"
-
-# Exact CLI pins are refreshed by `mise run refresh`.
-# Prefer mise's native registry aliases before backend-qualified selectors.
-codex = "0.116.0"
-claude-code = "2.1.81"
-gemini-cli = "0.34.0"
-just = "1.47.1"
 chezmoi = "2.70.0"
+claude-code = "2.1.81"
+codex = "0.116.0"
+gemini-cli = "0.34.0"
+gh = "2.88.1"
+just = "1.47.1"
+node = "25.8.1"
+pixi = "0.66.0"
+uv = "0.10.12"
 watchexec = "2.5.0"
-
-[tasks.bootstrap]
-run = "uv run -m tooling bootstrap"
-
-[tasks.build-cpp26-images]
-run = "uv run -m tooling build-cpp26-images --toolchain all --flavor core"
-
-[tasks.build-devcontainer-image]
-run = "uv run -m tooling build-devcontainer-image"
-
-[tasks.bump-cpp26-toolchain-pins]
-run = "uv run -m tooling bump-cpp26-toolchain-pins"
-
-[tasks.check-cpp26-toolchain-pins]
-run = "uv run -m tooling check-cpp26-toolchain-pins"
-
-[tasks.devcontainer-up-macos]
-run = "uv run -m tooling devcontainer-up-macos"
-
-[tasks.host-preflight-macos]
-run = "uv run -m tooling host-preflight-macos"
-
-[tasks.install-phase0-review-skills]
-run = "uv run -m tooling install-phase0-review-skills"
-
-[tasks.refresh]
-run = "uv run -m tooling refresh"
-
-[tasks.review-plan-phase0]
-run = "uv run -m tooling review-plan-phase0 spec/2026-03-22-chezmoi-mise-devcontainer-migration-plan.md"
-
-[tasks.review-plan-phase0-dry-run]
-run = "uv run -m tooling review-plan-phase0 spec/2026-03-22-chezmoi-mise-devcontainer-migration-plan.md --dry-run"
-
-[tasks.smoke-ssh-git-gh-parity]
-run = "uv run -m tooling smoke-ssh-git-gh-parity"
-
-[tasks.smoke-ssh-into-devcontainer]
-run = "uv run -m tooling smoke-ssh-into-devcontainer"
-
-[tasks.sync-devcontainer-ssh-known-hosts]
-run = "uv run -m tooling sync-devcontainer-ssh-known-hosts"
-
-[tasks.sync-generated]
-run = "uv run -m tooling sync-generated"
-
-[tasks.validate-all]
-run = "uv run -m tooling validate --mode all"
-
-[tasks.validate-docker-images]
-run = "uv run -m tooling validate-docker-images"
-
-[tasks.validate-repo]
-run = "uv run -m tooling validate --mode repo"
-
-[tasks.validate-runtime]
-run = "uv run -m tooling validate --mode runtime"
-
-[tasks.prove-devcontainer]
-run = "uv run -m tooling prove --surface devcontainer"
-
-[tasks.prove-latest-kernel-vm]
-run = "uv run -m tooling prove --surface latest-kernel-vm"
-
-[tasks.prove-latest-kernel-ci]
-run = "uv run -m tooling prove --surface latest-kernel-ci"
