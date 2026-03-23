@@ -1,0 +1,53 @@
+name: devcontainer-authoritative-smoke
+
+on:
+  pull_request:
+    paths:
+      - Dockerfile
+      - docker-bake.hcl
+      - .devcontainer/**
+      - verification/**
+      - install.sh
+      - .github/workflows/**
+  workflow_dispatch:
+
+jobs:
+  devcontainer-authoritative-smoke:
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+      - latest-kernel
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: jdx/mise-action@v2
+
+      - name: Install repo tools
+        run: |
+          mise trust .
+          mkdir -p "${RUNNER_TEMP}/mise"
+          : > "${RUNNER_TEMP}/mise/config.toml"
+          MISE_GLOBAL_CONFIG_FILE="${RUNNER_TEMP}/mise/config.toml" \
+          MISE_IGNORED_CONFIG_PATHS="${HOME}/.config/mise" \
+          mise install --locked
+
+      - name: Install Python helper environment
+        run: uv sync --locked --group dev
+
+      - name: Install locked pixi environment
+        run: pixi install --locked
+
+      - name: Build devcontainer image with bake
+        run: docker buildx bake -f docker-bake.hcl devcontainer --load
+
+      - name: Smoke devcontainer image and reflection toolchains
+        run: ./scripts/smoke-devcontainer-image.sh
+
+      - name: Run repo verification
+        run: uv run verify run
+

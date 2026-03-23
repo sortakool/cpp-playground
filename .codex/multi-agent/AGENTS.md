@@ -75,4 +75,6 @@ Do not manually edit inside the managed block.
 - [MA-12] Keeping strict gate and learnings sync adjacent to gate execution preserves consistent MA state.
 - [MA-13] Locking disjoint write scopes at MA-13 materially reduces merge/conflict risk for MA-14/15/16 parallel execution.
 - [MA-13] For this wave, telemetry and runtime evidence must be explicitly labeled structural vs authoritative; missing Docker/amd64 runtime capability is a blocker, not a hidden PASS.
+- [MA-14] A dedicated repo-owned smoke script keeps workflow logic minimal and auditable while preserving the authoritative self-hosted proof contract.
+- [MA-14] On non-Docker-capable local sessions, MA threads must explicitly mark runtime checks as blocked/structural rather than claiming authoritative PASS.
 <!-- END AUTO-LEARNINGS -->
