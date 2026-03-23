@@ -71,4 +71,8 @@ Do not manually edit inside the managed block.
 - [MA-10] Running sync + strict gate immediately after thread completion preserves MA policy consistency.
 - [MA-11] Sanitizer smoke tests must return process exit code `0`; using computed arithmetic as `main` return value causes false negatives under `set -e`.
 - [MA-11] The current host runs `linux/arm64` while test images are `linux/amd64`; warnings are expected and non-blocking for this workflow.
+- [MA-12] `ma_dev_image_gate.sh --require-gcc` is now a reliable final acceptance test for clang + gcc readiness.
+- [MA-12] Keeping strict gate and learnings sync adjacent to gate execution preserves consistent MA state.
+- [MA-13] Locking disjoint write scopes at MA-13 materially reduces merge/conflict risk for MA-14/15/16 parallel execution.
+- [MA-13] For this wave, telemetry and runtime evidence must be explicitly labeled structural vs authoritative; missing Docker/amd64 runtime capability is a blocker, not a hidden PASS.
 <!-- END AUTO-LEARNINGS -->
