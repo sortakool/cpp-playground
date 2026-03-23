@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cpp-playground.local/benchmarks/devcontainer/schema.json",
+  "title": "Devcontainer Benchmark Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run_id",
+    "git_sha",
+    "git_dirty",
+    "runner_name",
+    "runner_labels",
+    "docker_version",
+    "buildx_version",
+    "scenario",
+    "platform",
+    "image_ref",
+    "timings_s",
+    "image_size_bytes",
+    "compressed_size_bytes",
+    "top_layers",
+    "filesystem_sizes",
+    "result"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "git_sha": {
+      "type": "string",
+      "minLength": 7
+    },
+    "git_dirty": {
+      "type": "boolean"
+    },
+    "runner_name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runner_labels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "docker_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "buildx_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scenario": {
+      "type": "string",
+      "enum": [
+        "cold",
+        "warm-repo-change",
+        "warm-devcontainer-change"
+      ]
+    },
+    "platform": {
+      "type": "string",
+      "minLength": 1
+    },
+    "image_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timings_s": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0
+      },
+      "required": [
+        "build_wall",
+        "size_report_wall"
+      ],
+      "properties": {
+        "build_wall": {
+          "type": "number",
+          "minimum": 0
+        },
+        "size_report_wall": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "image_size_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "compressed_size_bytes": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "top_layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "created_by",
+          "size",
+          "size_bytes"
+        ],
+        "properties": {
+          "created_by": {
+            "type": "string"
+          },
+          "size": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "filesystem_sizes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "/opt/llvm",
+        "/opt/clang-p2996",
+        "/opt/gcc-reflection",
+        "/opt/cpp-playground"
+      ],
+      "properties": {
+        "/opt/llvm": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "/opt/clang-p2996": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "/opt/gcc-reflection": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "/opt/cpp-playground": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "result": {
+      "type": "string",
+      "enum": [
+        "pass",
+        "fail",
+        "blocked"
+      ]
+    }
+  }
+}
+

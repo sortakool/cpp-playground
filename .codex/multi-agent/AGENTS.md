@@ -77,4 +77,6 @@ Do not manually edit inside the managed block.
 - [MA-13] For this wave, telemetry and runtime evidence must be explicitly labeled structural vs authoritative; missing Docker/amd64 runtime capability is a blocker, not a hidden PASS.
 - [MA-14] A dedicated repo-owned smoke script keeps workflow logic minimal and auditable while preserving the authoritative self-hosted proof contract.
 - [MA-14] On non-Docker-capable local sessions, MA threads must explicitly mark runtime checks as blocked/structural rather than claiming authoritative PASS.
+- [MA-15] Keeping benchmark tooling shell-first with JSON-schema artifacts provides reproducible measurement surfaces without adding a new control plane.
+- [MA-15] The scenario label should remain explicit input (`cold`, `warm-repo-change`, `warm-devcontainer-change`) so paired-run comparisons stay auditable.
 <!-- END AUTO-LEARNINGS -->
