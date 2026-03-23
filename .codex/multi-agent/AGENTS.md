@@ -79,4 +79,6 @@ Do not manually edit inside the managed block.
 - [MA-14] On non-Docker-capable local sessions, MA threads must explicitly mark runtime checks as blocked/structural rather than claiming authoritative PASS.
 - [MA-15] Keeping benchmark tooling shell-first with JSON-schema artifacts provides reproducible measurement surfaces without adding a new control plane.
 - [MA-15] The scenario label should remain explicit input (`cold`, `warm-repo-change`, `warm-devcontainer-change`) so paired-run comparisons stay auditable.
+- [MA-16] Encoding schema/pin checks in `verification.toml` provides a stable guardrail against drift without introducing a new orchestration plane.
+- [MA-16] README updates should reference only repo-owned scripts/tasks and explicit authoritative runner constraints to avoid accidental contract expansion.
 <!-- END AUTO-LEARNINGS -->

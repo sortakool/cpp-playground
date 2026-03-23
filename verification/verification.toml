@@ -158,3 +158,17 @@ requires_commands = ["rg"]
 commands = [
   "! rg -n 'tooling/control_plane\\.py|\\.devcontainer/Dockerfile([[:space:]]|$|\"|\\)|,)|tooling/cpp26-dev-images|python3 -m tooling|uv run -m tooling|mise run prove-devcontainer|devcontainer-up-macos|host-preflight-macos|smoke-ssh-into-devcontainer|sync-devcontainer-ssh-known-hosts' README.md docs .agents/skills AGENTS.md CLAUDE.md",
 ]
+
+[[suite]]
+name = "build-optimization.schema-surface"
+description = "Devcontainer benchmark schema and benchmark/report scripts are present with required fields."
+commands = [
+  "python3 - <<'PY'\nimport json\nfrom pathlib import Path\nrequired_paths = (\n    Path('benchmarks/devcontainer/schema.json'),\n    Path('benchmarks/devcontainer/README.md'),\n    Path('scripts/benchmark-devcontainer-build.sh'),\n    Path('scripts/report-devcontainer-size.sh'),\n    Path('scripts/smoke-devcontainer-image.sh'),\n    Path('.github/workflows/devcontainer-authoritative-smoke.yml'),\n)\nmissing = [str(path) for path in required_paths if not path.exists()]\nif missing:\n    raise SystemExit(f'missing build-optimization path(s): {missing}')\nschema = json.loads(Path('benchmarks/devcontainer/schema.json').read_text())\nrequired_fields = {\n    'schema_version',\n    'run_id',\n    'git_sha',\n    'git_dirty',\n    'runner_name',\n    'runner_labels',\n    'docker_version',\n    'buildx_version',\n    'scenario',\n    'platform',\n    'image_ref',\n    'timings_s',\n    'image_size_bytes',\n    'compressed_size_bytes',\n    'top_layers',\n    'filesystem_sizes',\n    'result',\n}\nactual = set(schema.get('required', []))\nif required_fields != actual:\n    raise SystemExit(f'schema required mismatch: {sorted(required_fields ^ actual)}')\nprint('build-optimization schema surface ok')\nPY",
+]
+
+[[suite]]
+name = "build-optimization.pin-alignment"
+description = "Bake defaults and Dockerfile fallback ARG defaults stay aligned for shared build pins."
+commands = [
+  "python3 - <<'PY'\nimport re\nfrom pathlib import Path\nbake_text = Path('docker-bake.hcl').read_text()\ndockerfile_text = Path('Dockerfile').read_text()\nkeys = ('BASE_DISTRO', 'BASE_VERSION', 'APT_SNAPSHOT', 'MISE_VERSION', 'LLVM_VERSION')\ndef bake_value(key: str) -> str:\n    pattern = re.compile(rf'variable \"{key}\"\\s*{{\\s*default = \"([^\"]+)\"', re.MULTILINE)\n    match = pattern.search(bake_text)\n    if not match:\n        raise SystemExit(f'missing bake variable default for {key}')\n    return match.group(1)\ndef dockerfile_value(key: str) -> str:\n    pattern = re.compile(rf'ARG {key}=([^\\n]+)')\n    match = pattern.search(dockerfile_text)\n    if not match:\n        raise SystemExit(f'missing Dockerfile ARG default for {key}')\n    return match.group(1).strip()\nfor key in keys:\n    left = bake_value(key)\n    right = dockerfile_value(key)\n    if left != right:\n        raise SystemExit(f'pin mismatch for {key}: bake={left!r} dockerfile={right!r}')\nprint('build pin alignment ok')\nPY",
+]

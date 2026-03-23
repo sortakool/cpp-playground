@@ -50,6 +50,34 @@ Latest-tool and latest-kernel C++ development environment with a Linux `amd64` d
 
 For kernel-sensitive work, follow [docs/latest-kernel-testing.md](docs/latest-kernel-testing.md).
 
+## Authoritative Smoke And Benchmark Surface
+
+- Required authoritative workflow: `.github/workflows/devcontainer-authoritative-smoke.yml`
+  - Runner contract: `self-hosted`, `Linux`, `X64`, `latest-kernel`
+  - Required checks: bake build, repo-owned smoke/toolchain checks, `uv run verify run`
+- Repo-owned smoke entrypoint:
+
+  ```bash
+  ./scripts/smoke-devcontainer-image.sh
+  ```
+
+- Devcontainer benchmark entrypoints:
+
+  ```bash
+  ./scripts/benchmark-devcontainer-build.sh --scenario cold
+  ./scripts/report-devcontainer-size.sh
+  ```
+
+- Equivalent `pixi` leaf tasks:
+
+  ```bash
+  pixi run smoke-devcontainer-image
+  pixi run benchmark-devcontainer-build -- --scenario cold
+  pixi run report-devcontainer-size
+  ```
+
+- Benchmark artifacts are written against `benchmarks/devcontainer/schema.json`.
+
 ## Apple Silicon Caveat
 
 - The authoritative devcontainer proof surface is Linux `amd64`, not Linux `arm64`.
