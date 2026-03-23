@@ -64,7 +64,7 @@ The repo should now reflect this policy:
 - [.github/workflows/tooling-refresh.yml](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/.github/workflows/tooling-refresh.yml)
 - [.github/workflows/latest-kernel-ci.yml](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/.github/workflows/latest-kernel-ci.yml)
 - [docs/latest-kernel-testing.md](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/docs/latest-kernel-testing.md)
-- [.devcontainer/scripts/post-create.sh](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/.devcontainer/scripts/post-create.sh)
+- Use `uv run -m tooling post-create` as the post-create bootstrap surface.
 
 ## Execution Workflow
 
@@ -78,7 +78,7 @@ The repo should now reflect this policy:
 Run:
 
 ```bash
-python3 -m tooling bootstrap
+pixi run bootstrap
 ```
 
 Expected behavior:
@@ -95,9 +95,9 @@ If this step fails, stop and fix the smallest root cause before proceeding.
 Run these in order inside the devcontainer:
 
 ```bash
-python3 -m tooling validate --mode repo
-python3 -m tooling validate --mode runtime
-python3 -m tooling validate --mode all
+pixi run validate-repo
+pixi run validate-runtime
+pixi run validate-all
 pixi run ruff-check
 pixi run ruff-format
 pixi run ty-check
@@ -137,9 +137,9 @@ pixi run prove-devcontainer
 
 ### Control-Plane Consistency
 
-- `python3 -m tooling bootstrap` uses the same Python toolchain policy described in docs and tasks
-- `python3 -m tooling validate --mode repo` confirms generated files are still in sync
-- `python3 -m tooling prove --surface devcontainer` still preserves the existing validation behavior
+- `pixi run bootstrap` uses the same Python toolchain policy described in docs and tasks
+- `pixi run validate-repo` confirms generated files are still in sync
+- `pixi run prove-devcontainer` still preserves the existing validation behavior
 
 ### `mise` Isolation
 
@@ -147,8 +147,8 @@ The key decision was to isolate repo control-plane `mise` operations from host-g
 
 Verify that:
 
-- `python3 -m tooling bootstrap` succeeds in the devcontainer without inheriting host-global `mise` config
-- `python3 -m tooling refresh` would regenerate repo lockfiles through the isolated path
+- `pixi run bootstrap` succeeds in the devcontainer without inheriting host-global `mise` config
+- `pixi run refresh` would regenerate repo lockfiles through the isolated path
 - plain `mise install --locked` and `mise lock` inside the devcontainer behave acceptably for interactive repo use
 
 If the direct `mise` commands still touch global state in the devcontainer, document the distinction clearly:

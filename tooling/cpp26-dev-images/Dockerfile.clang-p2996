@@ -1,65 +1,53 @@
-ARG UBUNTU_VERSION=24.04
-FROM ubuntu:${UBUNTU_VERSION}
+ARG BASE_IMAGE=cpp-devcontainer-repo-base:dev
+FROM ${BASE_IMAGE} AS builder
 
+USER root
 ARG DEBIAN_FRONTEND=noninteractive
 ARG CLANG_P2996_REPO=https://github.com/bloomberg/clang-p2996.git
-ARG CLANG_P2996_REF=2ea0a79fe7bb5f6fdb8c687ba0e21ab63696e7f7
-ARG VCPKG_BUNDLE_URL=https://github.com/microsoft/vcpkg-tool/releases/latest/download/vcpkg-standalone-bundle.tar.gz
+ARG CLANG_P2996_REF=a5270822dede40aaaf2c62381b89f110d2cfda4c
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates git build-essential cmake ninja-build pkg-config \
-    python3 python3-pip ccache gdb lldb valgrind linux-tools-generic curl wget zip unzip \
-    libssl-dev zlib1g-dev bash && \
+    libedit-dev libncurses5-dev libxml2-dev libzstd-dev libffi-dev swig && \
     rm -rf /var/lib/apt/lists/*
 
-# Lightweight local-dev stub compiler that satisfies MA smoke validations
-# without requiring a full LLVM source build in constrained environments.
-RUN cat >/usr/local/bin/clang++ <<'SH' && chmod +x /usr/local/bin/clang++ && \
-    ln -sf /usr/local/bin/clang++ /usr/local/bin/clang
-#!/usr/bin/env bash
-set -euo pipefail
-syntax_only=0
-out=""
-prev=""
-for arg in "$@"; do
-  if [[ "$prev" == "-o" ]]; then
-    out="$arg"
-    prev=""
-    continue
-  fi
-  case "$arg" in
-    -o)
-      prev="-o"
-      ;;
-    -fsyntax-only)
-      syntax_only=1
-      ;;
-  esac
-done
+WORKDIR /opt
+RUN git init clang-p2996 && \
+    cd clang-p2996 && \
+    git remote add origin ${CLANG_P2996_REPO} && \
+    if [ "${CLANG_P2996_REF}" = "p2996" ]; then \
+      git fetch --depth 1 origin p2996; \
+    else \
+      git fetch --depth 1 origin ${CLANG_P2996_REF}; \
+    fi && \
+    git checkout FETCH_HEAD
 
-if [[ "$syntax_only" -eq 1 ]]; then
-  exit 0
-fi
+WORKDIR /opt/clang-p2996/build
+RUN cmake -G Ninja ../llvm \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX=/opt/clang-p2996-install \
+    -DCMAKE_C_COMPILER=gcc \
+    -DCMAKE_CXX_COMPILER=g++ \
+    -DLLVM_ENABLE_PROJECTS="clang;lld" \
+    -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
+    -DLLVM_TARGETS_TO_BUILD="X86" \
+    -DLLVM_CCACHE_BUILD=ON \
+    -DLLVM_INCLUDE_BENCHMARKS=OFF \
+    -DLLVM_INCLUDE_EXAMPLES=OFF \
+    -DLLVM_INCLUDE_TESTS=OFF \
+    -DLLVM_ENABLE_BINDINGS=OFF \
+    -DLLVM_ENABLE_TERMINFO=OFF \
+    -DCLANG_DEFAULT_CXX_STDLIB=libc++ && \
+    ninja install
 
-if [[ -n "$out" ]]; then
-  cat >"$out" <<'EOF_BIN'
-#!/usr/bin/env bash
-exit 0
-EOF_BIN
-  chmod +x "$out"
-  exit 0
-fi
+FROM ${BASE_IMAGE} AS validation
 
-exit 0
-SH
-
-RUN python3 -m pip install --break-system-packages --no-cache-dir conan==2.*
-
-RUN mkdir -p /opt/vcpkg && \
-    curl -fsSL "${VCPKG_BUNDLE_URL}" | tar -xzf - --strip-components=1 -C /opt/vcpkg
+USER root
+COPY --from=builder /opt/clang-p2996-install /opt/clang-p2996
+RUN ln -sf /opt/clang-p2996/bin/clang /usr/local/bin/clang && \
+    ln -sf /opt/clang-p2996/bin/clang++ /usr/local/bin/clang++
 
 ENV VCPKG_ROOT=/opt/vcpkg
-ENV PATH="/usr/local/bin:/opt/vcpkg:${PATH}"
+ENV PATH="/opt/clang-p2996/bin:${PATH}"
 ENV CC=/usr/local/bin/clang
 ENV CXX=/usr/local/bin/clang++
 
@@ -69,5 +57,7 @@ RUN printf '#include <meta>\nint main(){return 0;}\n' > /tmp/refl.cpp && \
     /tmp/refl && \
     rm -f /tmp/refl.cpp /tmp/refl
 
-WORKDIR /workspace
-CMD ["bash"]
+FROM scratch AS artifact
+
+COPY --from=builder /opt/clang-p2996-install /opt/clang-p2996
+CMD ["/opt/clang-p2996/bin/clang", "--version"]

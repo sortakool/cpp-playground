@@ -1,5 +1,10 @@
-ARG BASE_IMAGE=cpp26-dev-clang:dev
+ARG BASE_IMAGE=cpp-devcontainer-repo-base:dev
+ARG CLANG_IMAGE=cpp26-dev-clang:dev
+
+FROM ${CLANG_IMAGE} AS clang_artifact
 FROM ${BASE_IMAGE}
+
+COPY --from=clang_artifact /opt/clang-p2996 /opt/clang-p2996
 
 ARG QUANTLIB_VERSION=1.33
 
@@ -20,5 +25,6 @@ RUN set -e; \
     rm -rf /tmp/QuantLib-${QUANTLIB_VERSION} /tmp/QuantLib-${QUANTLIB_VERSION}.tar.gz
 
 ENV QuantLib_DIR=/opt/ql_install
+ENV PATH="/opt/clang-p2996/bin:${PATH}"
 WORKDIR /workspace
 CMD ["bash"]

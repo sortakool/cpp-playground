@@ -1,0 +1,6 @@
+interface:
+  display_name: "C++ Devcontainer Bake"
+  short_description: "Orchestrate the repo's host-aware devcontainer lifecycle"
+  default_prompt: "Use $cpp-devcontainer-bake to build, inspect, initialize, or troubleshoot the repo's host-aware C++ devcontainer workflow around docker-bake.hcl, chezmoi, mise, pixi, and the Python control plane."
+policy:
+  allow_implicit_invocation: true

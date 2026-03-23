@@ -29,10 +29,10 @@
 4. If unsure and the ambiguity affects behavior, interview the human before changing behavior.
 5. Always review the tool's code, official documentation, and repo implementation before changing behavior.
 6. Always perform a gap analysis from current repo state to documented behavior and modern best-practice projects before changing behavior.
-7. Treat the devcontainer as the primary execution surface immediately after `python3 -m tooling build-devcontainer-image` succeeds.
+7. Treat the devcontainer as the primary execution surface immediately after `pixi run build-devcontainer-image` succeeds.
 8. Preserve existing working validation behavior. A fix is invalid if it regresses a previously passing validation path.
 9. Generated files must be re-synced through the control plane, never patched manually.
-10. If the repo does not already expose a safe control-plane sync path for generated files without changing upstream version pins, implement that smallest safe control-plane sync path first, then use it. Do not misuse `python3 -m tooling refresh` for ordinary regeneration unless the intended fix is specifically to refresh upstream versions.
+10. If the repo does not already expose a safe control-plane sync path for generated files without changing upstream version pins, implement that smallest safe control-plane sync path first, then use it. Do not misuse `pixi run refresh` for ordinary regeneration unless the intended fix is specifically to refresh upstream versions.
 
 ## Required Skill Load Order
 
@@ -69,19 +69,17 @@ Review, at minimum, these repo files before changing behavior:
 - [README.md](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/README.md)
 - [AGENTS.md](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/AGENTS.md)
 - [docs/latest-kernel-testing.md](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/docs/latest-kernel-testing.md)
-- [tooling/control_plane.py](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/control_plane.py)
+- [docs/mac-devcontainer-parity.md](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/docs/mac-devcontainer-parity.md)
 - [tooling/tool-version-manifest.json](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/tool-version-manifest.json)
-- [tooling/templates/devcontainer.json.tmpl](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/templates/devcontainer.json.tmpl)
 - [tooling/templates/README.md.tmpl](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/templates/README.md.tmpl)
 - [tooling/templates/pixi.toml.tmpl](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/templates/pixi.toml.tmpl)
-- [tooling/templates/Dockerfile.tmpl](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/templates/Dockerfile.tmpl)
-- [tooling/templates/cpp26-dev-images/docker-bake.hcl.tmpl](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/templates/cpp26-dev-images/docker-bake.hcl.tmpl)
-- [tooling/templates/cpp26-dev-images/Dockerfile.clang-p2996.tmpl](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/templates/cpp26-dev-images/Dockerfile.clang-p2996.tmpl)
-- [tooling/templates/cpp26-dev-images/Dockerfile.clang-p2996-quantlib.tmpl](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/templates/cpp26-dev-images/Dockerfile.clang-p2996-quantlib.tmpl)
-- [tooling/templates/cpp26-dev-images/Dockerfile.gcc-reflection.tmpl](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/templates/cpp26-dev-images/Dockerfile.gcc-reflection.tmpl)
 - [.devcontainer/devcontainer.json](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/.devcontainer/devcontainer.json)
 - [.devcontainer/Dockerfile](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/.devcontainer/Dockerfile)
-- [.devcontainer/scripts/post-create.sh](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/.devcontainer/scripts/post-create.sh)
+- [docker-bake.hcl](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/docker-bake.hcl)
+- [tooling/cpp26-dev-images/Dockerfile.clang-p2996](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/cpp26-dev-images/Dockerfile.clang-p2996)
+- [tooling/cpp26-dev-images/Dockerfile.clang-p2996-quantlib](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/cpp26-dev-images/Dockerfile.clang-p2996-quantlib)
+- [tooling/cpp26-dev-images/Dockerfile.gcc-reflection](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/cpp26-dev-images/Dockerfile.gcc-reflection)
+- [tooling/control_plane.py](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/control_plane.py)
 - [pixi.toml](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/pixi.toml)
 - [pyproject.toml](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/pyproject.toml)
 - [.github/workflows/tooling-validate.yml](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/.github/workflows/tooling-validate.yml)
@@ -161,7 +159,7 @@ The owner thread remains responsible for all final decisions. A subagent result 
 2. Build the wrapper devcontainer image on the host:
 
 ```bash
-python3 -m tooling build-devcontainer-image
+pixi run build-devcontainer-image
 ```
 
 3. If the image build fails:
@@ -210,10 +208,10 @@ These exact files are the required persistence evidence later:
 
 The in-devcontainer verification sequence is exactly the following commands, in exactly this order, with no reordering and no omissions:
 
-1. `python3 -m tooling bootstrap`
-2. `python3 -m tooling validate --mode repo`
-3. `python3 -m tooling validate --mode runtime`
-4. `python3 -m tooling validate --mode all`
+1. `pixi run bootstrap`
+2. `pixi run validate-repo`
+3. `pixi run validate-runtime`
+4. `pixi run validate-all`
 5. `pixi run ruff-check`
 6. `pixi run ruff-format`
 7. `pixi run ty-check`
@@ -265,7 +263,7 @@ Apply these rules every time a command warns, errors, or fails:
 2. Prefer minimal local fixes over policy changes.
 3. Do not float versions, add TODOs, add bypass flags, or weaken checks.
 4. Do not remove validations to make the sequence pass.
-5. If you touch any generated-output source, immediately re-sync through the control plane and re-run `python3 -m tooling validate --mode repo`.
+5. If you touch any generated-output source, immediately re-sync through the control plane and re-run `pixi run validate-repo`.
 6. If you touch any of the following, rebuild the devcontainer image and recreate the devcontainer before final verification:
    - [tooling/control_plane.py](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/control_plane.py)
    - [tooling/tool-version-manifest.json](/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/tooling/tool-version-manifest.json)
@@ -282,7 +280,7 @@ Apply these rules every time a command warns, errors, or fails:
 1. Re-run the exact failing command first.
 2. Re-run any immediately dependent validation command next.
 3. If the fix touched image, devcontainer, control-plane, template, lockfile, or tooling policy files, then:
-   - rebuild the image with `python3 -m tooling build-devcontainer-image`
+   - rebuild the image with `pixi run build-devcontainer-image`
    - recreate the devcontainer
    - restart the verification sequence from step 1
 
@@ -293,7 +291,7 @@ Completion requires a clean final verification pass from a fresh recreated devco
 1. Build the image again on the host:
 
 ```bash
-python3 -m tooling build-devcontainer-image
+pixi run build-devcontainer-image
 ```
 
 2. Recreate the devcontainer from the current repo state.

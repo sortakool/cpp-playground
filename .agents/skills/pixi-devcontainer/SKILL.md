@@ -78,6 +78,16 @@ pixi run prove-devcontainer
 
 Prefer the repo tasks in `pixi.toml` over hand-written command sequences whenever an equivalent task already exists.
 
+For SSH/bootstrap helper flows, prefer the Python control plane entrypoints instead of shell scripts:
+
+```bash
+python3 -m tooling post-create
+python3 -m tooling sync-github-known-hosts
+python3 -m tooling smoke-ssh-git-gh-parity
+python3 -m tooling host-preflight-macos
+python3 -m tooling devcontainer-up-macos
+```
+
 ## Verification
 
 Prefer the repo-defined commands in this order:

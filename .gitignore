@@ -3,6 +3,7 @@ firebase-debug.log
 .env
 .env.*
 !.env.example
+mise.local.toml
 .pixi/
 out/
 compile_commands.json
@@ -12,3 +13,12 @@ dist/
 __pycache__/
 *.pyc
 *.egg-info/
+
+# Local third-party review rubrics for the Phase 0 gate.
+/.agents/skills/adversarial-thinking/
+/.agents/skills/code-doubter/
+/.agents/skills/adversarial-committee/
+/.codex/skills/adversarial-thinking/
+/.codex/skills/code-doubter/
+/.codex/skills/adversarial-committee/
+/skills-lock.json

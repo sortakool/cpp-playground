@@ -22,9 +22,9 @@ Build and refresh pinned C++26 reflection development images targeting `linux/am
 ## Workflow
 
 1. Read `tooling/tool-version-manifest.json` and keep the `cpp26_dev_images` pins authoritative.
-2. Build image targets with `tooling/scripts/build_cpp26_images.sh`.
-3. Check upstream pin drift with `tooling/scripts/update_cpp26_toolchains.py --check`.
-4. Bump pins explicitly with `tooling/scripts/update_cpp26_toolchains.py --bump`.
+2. Build image targets with `python3 -m tooling build-cpp26-images`.
+3. Check upstream pin drift with `python3 -m tooling check-cpp26-toolchain-pins`.
+4. Bump pins explicitly with `python3 -m tooling bump-cpp26-toolchain-pins`.
 5. Delegate runtime verification to `$cpp26-dev-image-validate`.
 6. Delegate publishing/sync to `$cpp26-dev-image-publish`.
 
@@ -32,16 +32,16 @@ Build and refresh pinned C++26 reflection development images targeting `linux/am
 
 ```bash
 # Build all core images locally
-./tooling/scripts/build_cpp26_images.sh --toolchain all --flavor core
+python3 -m tooling build-cpp26-images --toolchain all --flavor core
 
 # Build clang quantlib variant
-./tooling/scripts/build_cpp26_images.sh --toolchain clang --flavor quantlib --image-tag dev
+python3 -m tooling build-cpp26-images --toolchain clang --flavor quantlib --image-tag dev
 
 # Check if pins are stale
-python3 ./tooling/scripts/update_cpp26_toolchains.py --check
+python3 -m tooling check-cpp26-toolchain-pins
 
 # Update lock file pins to latest branch heads
-python3 ./tooling/scripts/update_cpp26_toolchains.py --bump
+python3 -m tooling bump-cpp26-toolchain-pins
 ```
 
 ## Outputs

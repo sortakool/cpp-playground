@@ -1,0 +1,9 @@
+[env]
+# Uncomment the values you actually need for local development.
+# OPENAI_API_KEY = "..."
+# ANTHROPIC_API_KEY = "..."
+# GOOGLE_API_KEY = "..."
+# GEMINI_API_KEY = "..."
+
+# Optional: load a gitignored dotenv/json/yaml file instead of inlining values.
+# _.file = { path = ".env.local", redact = true }

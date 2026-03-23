@@ -6,7 +6,7 @@ The devcontainer is the daily userspace environment. It does not own the kernel.
 
 The repo's devcontainer surface is still `linux/amd64`. On Apple Silicon, Docker Desktop may provide that surface through emulation instead of a native Linux `amd64` host. That is not a supported proof path for sanitizer evidence in this repo.
 
-If the devcontainer `llvm-tsan` lane fails with `ThreadSanitizer: memory layout is incompatible` and the process memory map contains `/run/rosetta/rosetta`, treat that as the Apple Silicon emulation caveat tracked in [issue #1](https://github.com/sortakool/cpp-playground/issues/1). Use a native Linux `amd64` Docker host or VM when you need authoritative `pixi run prove-devcontainer` proof.
+If the devcontainer `llvm-tsan` lane fails with `ThreadSanitizer: memory layout is incompatible` and the process memory map contains `/run/rosetta/rosetta`, treat that as the Apple Silicon emulation caveat tracked in [issue #1](https://github.com/sortakool/cpp-playground/issues/1). Use a native Linux `amd64` Docker host or VM when you need authoritative `mise run prove-devcontainer` proof.
 
 ## Required Host Contract
 
@@ -23,8 +23,8 @@ If the devcontainer `llvm-tsan` lane fails with `ThreadSanitizer: memory layout 
 3. Install the repo-managed tools:
 
    ```bash
-   python3 -m tooling bootstrap
-   python3 -m tooling validate --mode all
+   mise run bootstrap
+   mise run validate-all
    ```
 
 4. Verify the kernel:
@@ -36,7 +36,7 @@ If the devcontainer `llvm-tsan` lane fails with `ThreadSanitizer: memory layout 
 5. Run the kernel suite as root:
 
    ```bash
-   sudo python3 -m tooling prove --surface latest-kernel-vm
+   sudo --preserve-env=PATH mise run prove-latest-kernel-vm
    ```
 
 ## CI Lane

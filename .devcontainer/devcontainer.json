@@ -3,7 +3,7 @@
   "image": "cpp-devcontainer:dev",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-  "remoteUser": "vscode",
+  "remoteUser": "${localEnv:USER}",
   "updateRemoteUserUID": true,
   "init": true,
   "overrideCommand": true,
@@ -13,40 +13,39 @@
     "storage": "32gb"
   },
   "containerEnv": {
+    "CPP_PLAYGROUND_HOST_USER": "${localEnv:USER}",
     "CMAKE_GENERATOR": "Ninja",
-    "CCACHE_DIR": "/home/vscode/.cache/ccache",
-    "SCCACHE_DIR": "/home/vscode/.cache/sccache",
-    "VCPKG_DEFAULT_BINARY_CACHE": "/home/vscode/.cache/vcpkg",
-    "VCPKG_BINARY_SOURCES": "clear;files,/home/vscode/.cache/vcpkg,readwrite",
-    "UV_LINK_MODE": "copy",
-    "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}",
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
-    "GOOGLE_API_KEY": "${localEnv:GOOGLE_API_KEY}",
-    "GEMINI_API_KEY": "${localEnv:GEMINI_API_KEY}",
-    "CPP_PLAYGROUND_TOOL_VERSION_MANIFEST": "/workspaces/${localWorkspaceFolderBasename}/tooling/tool-version-manifest.json"
+    "CCACHE_DIR": "/home/${localEnv:USER}/.cache/ccache",
+    "SCCACHE_DIR": "/home/${localEnv:USER}/.cache/sccache",
+    "VCPKG_DEFAULT_BINARY_CACHE": "/home/${localEnv:USER}/.cache/vcpkg",
+    "VCPKG_BINARY_SOURCES": "clear;files,/home/${localEnv:USER}/.cache/vcpkg,readwrite",
+    "UV_LINK_MODE": "copy"
   },
   "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/home/vscode/.local/share/mise/shims:/workspaces/${localWorkspaceFolderBasename}/.pixi/envs/default/bin"
+    "PATH": "${containerEnv:PATH}:/home/${localEnv:USER}/.local/share/mise/shims:/workspaces/${localWorkspaceFolderBasename}/.pixi/envs/default/bin"
   },
   "runArgs": [
     "--platform=linux/amd64",
+    "--publish=127.0.0.1:2222:22",
     "--cap-add=SYS_PTRACE",
     "--cap-add=PERFMON",
     "--security-opt=seccomp=unconfined",
     "--shm-size=2g"
   ],
   "mounts": [
-    "type=volume,src=ccache,target=/home/vscode/.cache/ccache",
-    "type=volume,src=sccache,target=/home/vscode/.cache/sccache",
-    "type=volume,src=vcpkg-cache,target=/home/vscode/.cache/vcpkg",
-    "type=volume,src=uv-cache,target=/home/vscode/.cache/uv",
-    "type=volume,src=pixi-home,target=/home/vscode/.pixi",
-    "type=volume,src=mise-home,target=/home/vscode/.local/share/mise",
-    "type=volume,src=codex-home,target=/home/vscode/.codex",
-    "type=volume,src=claude-home,target=/home/vscode/.claude",
-    "type=volume,src=gemini-home,target=/home/vscode/.gemini",
-    "type=volume,src=vscode-state,target=/home/vscode/.local/state",
+    "type=volume,src=ccache,target=/home/${localEnv:USER}/.cache/ccache",
+    "type=volume,src=sccache,target=/home/${localEnv:USER}/.cache/sccache",
+    "type=volume,src=vcpkg-cache,target=/home/${localEnv:USER}/.cache/vcpkg",
+    "type=volume,src=uv-cache,target=/home/${localEnv:USER}/.cache/uv",
+    "type=volume,src=pixi-home,target=/home/${localEnv:USER}/.pixi",
+    "type=volume,src=mise-home,target=/home/${localEnv:USER}/.local/share/mise",
+    "type=volume,src=codex-home,target=/home/${localEnv:USER}/.codex",
+    "type=volume,src=claude-home,target=/home/${localEnv:USER}/.claude",
+    "type=volume,src=gemini-home,target=/home/${localEnv:USER}/.gemini",
+    "type=volume,src=gh-config,target=/home/${localEnv:USER}/.config/gh",
+    "type=volume,src=devcontainer-local-state,target=/home/${localEnv:USER}/.local/state",
     "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
   ],
-  "postCreateCommand": ".devcontainer/scripts/post-create.sh"
+  "postCreateCommand": "uv run -m tooling post-create",
+  "postStartCommand": "uv run -m tooling ensure-devcontainer-ssh"
 }

@@ -116,6 +116,38 @@ backend = "npm:@google/gemini-cli"
 version = "0.34.0"
 backend = "npm:@google/gemini-cli"
 
+[[tools.gh]]
+version = "2.88.1"
+backend = "aqua:cli/cli"
+
+[tools.gh."platforms.linux-arm64"]
+checksum = "sha256:039ce25aab0cfa0ea5160e3db75ed44699bde4b20ff63ec5991f82201f1b33b8"
+url = "https://github.com/cli/cli/releases/download/v2.88.1/gh_2.88.1_linux_arm64.tar.gz"
+
+[tools.gh."platforms.linux-arm64-musl"]
+checksum = "sha256:039ce25aab0cfa0ea5160e3db75ed44699bde4b20ff63ec5991f82201f1b33b8"
+url = "https://github.com/cli/cli/releases/download/v2.88.1/gh_2.88.1_linux_arm64.tar.gz"
+
+[tools.gh."platforms.linux-x64"]
+checksum = "sha256:36352a993b97e9758793cdb87f9ba674bd6d88c914488e122be78a1962203803"
+url = "https://github.com/cli/cli/releases/download/v2.88.1/gh_2.88.1_linux_amd64.tar.gz"
+
+[tools.gh."platforms.linux-x64-musl"]
+checksum = "sha256:36352a993b97e9758793cdb87f9ba674bd6d88c914488e122be78a1962203803"
+url = "https://github.com/cli/cli/releases/download/v2.88.1/gh_2.88.1_linux_amd64.tar.gz"
+
+[tools.gh."platforms.macos-arm64"]
+checksum = "sha256:bdbeed4821d450ef0d14821d856c05b308ab449fbf60527f298d96fbf5d2447b"
+url = "https://github.com/cli/cli/releases/download/v2.88.1/gh_2.88.1_macOS_arm64.zip"
+
+[tools.gh."platforms.macos-x64"]
+checksum = "sha256:ff0fc4bdb9699f0c02e5bcdcbd09d0f8e4c4659aa5d30bcd39a3557ed7379b2e"
+url = "https://github.com/cli/cli/releases/download/v2.88.1/gh_2.88.1_macOS_amd64.zip"
+
+[tools.gh."platforms.windows-x64"]
+checksum = "sha256:8fdaac525d8919f9f8c265f99ffa26189e5f1fd3a35636adad4fd890a141a555"
+url = "https://github.com/cli/cli/releases/download/v2.88.1/gh_2.88.1_windows_amd64.zip"
+
 [[tools.just]]
 version = "1.47.1"
 backend = "aqua:casey/just"
@@ -147,38 +179,6 @@ url = "https://github.com/casey/just/releases/download/1.47.1/just-1.47.1-x86_64
 [tools.just."platforms.windows-x64"]
 checksum = "sha256:0f059a129049e4efaff5ff645182972edb07180248f769c5153a90765643bb7b"
 url = "https://github.com/casey/just/releases/download/1.47.1/just-1.47.1-x86_64-pc-windows-msvc.zip"
-
-[[tools.node]]
-version = "22.22.1"
-backend = "core:node"
-
-[tools.node."platforms.linux-arm64"]
-checksum = "sha256:1d1690e9aba47e887a275abc6d8f7317e571a0700deaef493f768377e99155f5"
-url = "https://nodejs.org/dist/v22.22.1/node-v22.22.1-linux-arm64.tar.gz"
-
-[tools.node."platforms.linux-arm64-musl"]
-checksum = "sha256:1d1690e9aba47e887a275abc6d8f7317e571a0700deaef493f768377e99155f5"
-url = "https://nodejs.org/dist/v22.22.1/node-v22.22.1-linux-arm64.tar.gz"
-
-[tools.node."platforms.linux-x64"]
-checksum = "sha256:07c8aafa60644fb81adefa1ee7da860eb1920851ffdc9a37020ab0be47fbc10e"
-url = "https://nodejs.org/dist/v22.22.1/node-v22.22.1-linux-x64.tar.gz"
-
-[tools.node."platforms.linux-x64-musl"]
-checksum = "sha256:07c8aafa60644fb81adefa1ee7da860eb1920851ffdc9a37020ab0be47fbc10e"
-url = "https://nodejs.org/dist/v22.22.1/node-v22.22.1-linux-x64.tar.gz"
-
-[tools.node."platforms.macos-arm64"]
-checksum = "sha256:679ad4966339e4ef4900f57996714864e4211b898825bb840c3086c419fbcef2"
-url = "https://nodejs.org/dist/v22.22.1/node-v22.22.1-darwin-arm64.tar.gz"
-
-[tools.node."platforms.macos-x64"]
-checksum = "sha256:07b13722d558790fca20bb1ecf61bde24b7a4863111f7be77fc57251a407359a"
-url = "https://nodejs.org/dist/v22.22.1/node-v22.22.1-darwin-x64.tar.gz"
-
-[tools.node."platforms.windows-x64"]
-checksum = "sha256:877cb93829e14fffbbc7903e7d8037336c9a79f3ea43c5d0b8c2379b79da56de"
-url = "https://nodejs.org/dist/v22.22.1/node-v22.22.1-win-x64.zip"
 
 [[tools.node]]
 version = "25.8.1"
@@ -261,38 +261,6 @@ checksum = "sha256:75b961f2d447b82122f702146977db43e351164236476f012fdefec5b8634
 url = "https://github.com/prefix-dev/pixi/releases/download/v0.66.0/pixi-x86_64-pc-windows-msvc.zip"
 url_api = "https://api.github.com/repos/prefix-dev/pixi/releases/assets/375845422"
 provenance = "slsa"
-
-[[tools.python]]
-version = "3.12.13"
-backend = "core:python"
-
-[tools.python."platforms.linux-arm64"]
-checksum = "sha256:36ddba171f170664c0b8f254be9c60a10d6319d922f115cf6b913e8d4cdfc200"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260320/cpython-3.12.13+20260320-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
-
-[tools.python."platforms.linux-arm64-musl"]
-checksum = "sha256:36ddba171f170664c0b8f254be9c60a10d6319d922f115cf6b913e8d4cdfc200"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260320/cpython-3.12.13+20260320-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
-
-[tools.python."platforms.linux-x64"]
-checksum = "sha256:bdabcacc426ab3f04dc65ff26dffb4abaddd16ae8797f8aa50479de0c566245e"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260320/cpython-3.12.13+20260320-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
-
-[tools.python."platforms.linux-x64-musl"]
-checksum = "sha256:bdabcacc426ab3f04dc65ff26dffb4abaddd16ae8797f8aa50479de0c566245e"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260320/cpython-3.12.13+20260320-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
-
-[tools.python."platforms.macos-arm64"]
-checksum = "sha256:696399fe62405849f83ba90d5792504ae11820d83f1a6f9a4af79227f1e66862"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260320/cpython-3.12.13+20260320-aarch64-apple-darwin-install_only_stripped.tar.gz"
-
-[tools.python."platforms.macos-x64"]
-checksum = "sha256:13a48dd64d9bb6ce1cdede48741011da87459ce88c34682957c4653eddf8603c"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260320/cpython-3.12.13+20260320-x86_64-apple-darwin-install_only_stripped.tar.gz"
-
-[tools.python."platforms.windows-x64"]
-checksum = "sha256:61e26d4ddd7e4345a8f980c4b3730aa9b388e5ac909555a6ad2ef9bae3b9f1ac"
-url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260320/cpython-3.12.13+20260320-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
 
 [[tools.uv]]
 version = "0.10.12"
