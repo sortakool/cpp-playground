@@ -116,6 +116,23 @@ target "devcontainer" {
   ]
 }
 
+target "devcontainer-load" {
+  inherits = ["_common"]
+  target = "devcontainer"
+  pull = true
+  tags = [
+    "${REGISTRY}/${IMAGE}:${TAG}",
+    "${IMAGE}:${TAG}",
+  ]
+  cache-from = [
+    "type=registry,ref=${REGISTRY}/${IMAGE}:buildcache",
+  ]
+  cache-to = [
+    "type=registry,ref=${REGISTRY}/${IMAGE}:buildcache,mode=max",
+  ]
+  output = ["type=docker"]
+}
+
 target "devcontainer-debian" {
   inherits = ["_common_debian"]
   target = "devcontainer"

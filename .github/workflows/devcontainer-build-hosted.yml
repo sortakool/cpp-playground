@@ -144,9 +144,9 @@ jobs:
       - name: Load hosted devcontainer image for structural smoke
         run: |
           docker buildx bake -f docker-bake.hcl \
-            --set devcontainer.cache-from="${HOSTED_CACHE_FROM}" \
-            --set devcontainer.cache-to="${HOSTED_CACHE_TO}" \
-            devcontainer --load
+            --set devcontainer-load.cache-from="${HOSTED_CACHE_FROM}" \
+            --set devcontainer-load.cache-to="${HOSTED_CACHE_TO}" \
+            devcontainer-load
 
       - name: Run hosted structural smoke
         run: ./scripts/smoke-devcontainer-image.sh
