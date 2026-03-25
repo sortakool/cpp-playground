@@ -1,0 +1,3 @@
+display_name: GHA Fix Loop
+short_description: Trigger, watch, and remediate GitHub Actions runs with hardening follow-through.
+default_prompt: Investigate a failing workflow, implement the fix, add a prevention artifact, and rerun until green or clearly blocked.

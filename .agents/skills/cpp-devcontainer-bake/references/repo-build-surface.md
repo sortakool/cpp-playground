@@ -40,6 +40,6 @@ docker buildx bake -f docker-bake.hcl --print devcontainer
 
 - `./install.sh` is the only checked-in shell exception.
 - Python helpers are limited to:
-  - `uv run finalize-bootstrap`
-  - `uv run verify run`
+  - `uv run cpp-playground bootstrap finalize`
+  - `uv run cpp-playground verify run`
   - devcontainer runtime helpers (user/SSH lifecycle)

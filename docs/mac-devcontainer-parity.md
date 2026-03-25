@@ -13,24 +13,39 @@ This repository no longer documents a separate macOS-host command flow for devco
 ## What To Use Instead
 
 - Use root `Dockerfile` + `docker buildx bake` as the build interface.
-- Use `./install.sh` and `uv run finalize-bootstrap` for bootstrap.
-- Use `uv run verify run` for verification.
+- Use `./install.sh` and `uv run cpp-playground bootstrap finalize` for bootstrap.
+- Use `uv run cpp-playground verify run` for verification.
 - For Apple Silicon caveats and proof expectations, use [docs/apple-silicon-devcontainer-amd64-emulation.md](docs/apple-silicon-devcontainer-amd64-emulation.md).
 
 ## SSH Validation Notes
 
+- For the SSH-exposed runtime path, start the container with:
+
+```bash
+uv run cpp-playground devcontainer up --json
+```
+
+- The wrapper defaults to host port `3333`, names the container as `cpp-playground-<devcontainer_user>-<ssh_port>`, and validates that SSH lands in the expected container.
+- By default it also removes prior repo-owned devcontainer instances before creating the next one, so a port change does not leave multiple repo containers running.
+- SSH authentication still has two pieces: the host Mac key proves identity, but the SSH username still selects the Linux account inside the container. Use `${USER}@127.0.0.1` when you want the explicit login target.
+- Override the default with:
+  - `uv run cpp-playground devcontainer up --ssh-port 3901 --json`
+  - `CPP_PLAYGROUND_DEVCONTAINER_SSH_PORT=3901 uv run cpp-playground devcontainer up --json`
+  - `.devcontainer/devcontainer.env`
+- To retrieve the resolved SSH target later, use:
+
+```bash
+uv run cpp-playground devcontainer status --json
+```
+
+- Typical host-side SSH attach:
+
+```bash
+ssh -p 3333 "${USER}@127.0.0.1"
+```
+
 - Validate SSH parity with:
   - `SSH_AUTH_SOCK="$(launchctl getenv SSH_AUTH_SOCK)" ssh-add -l`
-  - `python3 -m cpp_playground.devcontainer_runtime smoke-ssh`
+  - `uv run cpp-playground devcontainer smoke-ssh`
 - Do not require `gh auth status` parity inside the container as proof of SSH parity. Host `gh` auth may be backed by the macOS keychain and intentionally not available inside the Linux container.
-- If host access to `127.0.0.1:2222` reports a changed host key after recreating the devcontainer, refresh the local entry with:
-
-```bash
-ssh-keygen -R '[127.0.0.1]:2222'
-```
-
-- If the current macOS shell does not export `SSH_AUTH_SOCK`, wrap host-side SSH commands with:
-
-```bash
-SSH_AUTH_SOCK="$(launchctl getenv SSH_AUTH_SOCK)" ssh -p 2222 rmanaloto@127.0.0.1
-```
+- If the wrapper picks a port that already has a stale host key entry from an older container, remove the matching entry from the wrapper-managed known_hosts file under `~/.local/state/cpp-playground/`.

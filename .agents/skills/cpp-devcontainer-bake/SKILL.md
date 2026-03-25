@@ -54,8 +54,8 @@ docker image inspect cpp-devcontainer:dev >/dev/null
 4. Inside the container, the checked-in lifecycle is:
 
 ```bash
-uv run finalize-bootstrap
-uv run verify run
+uv run cpp-playground bootstrap finalize
+uv run cpp-playground verify run
 ```
 
 `postCreateCommand` and `postStartCommand` should only call the minimal runtime helper modules; do not add ad-hoc shell orchestration.
@@ -63,7 +63,7 @@ uv run verify run
 5. When the task touches SSH behavior, validate the checked-in parity contract:
 
 ```bash
-python3 -m cpp_playground.devcontainer_runtime smoke-ssh
+uv run cpp-playground devcontainer smoke-ssh
 ```
 
 On macOS hosts whose current shell does not export `SSH_AUTH_SOCK`, wrap host-side checks with:
@@ -78,7 +78,7 @@ SSH_AUTH_SOCK="$(launchctl getenv SSH_AUTH_SOCK)" ssh -T git@github.com
 - Routine build or rebuild for local use: `docker buildx bake -f docker-bake.hcl devcontainer`
 - Need to see resolved graph state before changing anything: `docker buildx bake --print <target>`
 - Need to list the root groups and targets: `docker buildx bake --list=targets`
-- Need post-build bootstrap or verify flows: `uv run finalize-bootstrap`, `uv run verify run`
+- Need post-build bootstrap or verify flows: `uv run cpp-playground bootstrap finalize`, `uv run cpp-playground verify run`
 - Need Python-tooling policy questions: `$python-pixi-astral-toolchain`
 
 ## Guardrails
@@ -99,7 +99,7 @@ SSH_AUTH_SOCK="$(launchctl getenv SSH_AUTH_SOCK)" ssh -T git@github.com
 ```bash
 docker buildx bake -f docker-bake.hcl --list=targets
 docker buildx bake -f docker-bake.hcl --print devcontainer >/tmp/cpp-devcontainer-dev.json
-uv run verify run
+uv run cpp-playground verify run
 ```
 
 ## Outputs

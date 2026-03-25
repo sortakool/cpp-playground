@@ -5,10 +5,11 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cpp-playground"
 version = "0.1.0"
-description = "Minimal bootstrap, verification, and devcontainer runtime helpers for cpp-playground"
+description = "Unified bootstrap, verification, image, and devcontainer automation for cpp-playground"
 requires-python = ">=3.12"
 
 [project.scripts]
+cpp-playground = "cpp_playground.cli:main"
 devcontainer-runtime = "cpp_playground.devcontainer_runtime:main"
 finalize-bootstrap = "cpp_playground.finalize_bootstrap:main"
 verify = "cpp_playground.verify:main"

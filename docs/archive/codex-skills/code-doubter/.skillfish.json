@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "name": "code-doubter",
+  "owner": "reminiscent-io",
+  "repo": "wanderluxe",
+  "path": ".claude/skills/code-doubter",
+  "branch": "main-agent",
+  "sha": "cae44a0938a1b5f59f127615b99598218fe21793",
+  "source": "manual"
+}

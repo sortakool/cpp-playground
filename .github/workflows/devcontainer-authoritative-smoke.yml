@@ -6,8 +6,15 @@ on:
       - Dockerfile
       - docker-bake.hcl
       - .devcontainer/**
-      - verification/**
+      - .agents/skills/**
+      - docs/**
+      - hk.pkl
       - install.sh
+      - mise.toml
+      - pixi.toml
+      - pyproject.toml
+      - src/cpp_playground/**
+      - verification/**
       - .github/workflows/**
   workflow_dispatch:
 
@@ -42,12 +49,11 @@ jobs:
       - name: Install locked pixi environment
         run: pixi install --locked
 
-      - name: Build devcontainer image with bake
+      - name: Build devcontainer image from source
         run: docker buildx bake -f docker-bake.hcl devcontainer --load
 
-      - name: Smoke devcontainer image and reflection toolchains
-        run: ./scripts/smoke-devcontainer-image.sh
+      - name: Smoke source-built devcontainer image
+        run: uv run cpp-playground image smoke
 
       - name: Run repo verification
-        run: uv run verify run
-
+        run: uv run cpp-playground verify run

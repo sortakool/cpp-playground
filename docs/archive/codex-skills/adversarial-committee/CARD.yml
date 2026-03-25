@@ -1,0 +1,202 @@
+# CARD.yml — Adversarial Committee
+#
+# Multiple personas with incompatible values debate to surface blind spots.
+# "No single story is true — but the ensemble approximates actionable wisdom."
+
+card:
+  id: adversarial-committee
+  name: "Adversarial Committee"
+  type: [skill, decision, ensemble, debate]
+  
+  emoji: 🗳️
+  
+  rarity: rare  # Powerful deliberation tool
+  
+  description: |
+    Form a committee of personas with opposing propensities.
+    They debate using Robert's Rules, producing output that gets
+    independently evaluated against a rubric.
+    
+    Play this card when facing complex decisions that require
+    multiple perspectives to avoid blind spots.
+
+# TOOLS REQUIRED
+
+tools:
+  required:
+    - read_file   # Read persona cards, rubrics
+    - write_file  # Write deliberation transcript, decisions
+  optional: []
+
+tier: 1  # File read/write
+
+# METHODS
+# Actions this card advertises
+
+methods:
+  
+  FORM:
+    description: "Create a new committee with selected personas"
+    parameters:
+      name: "Committee name"
+      purpose: "What they're deciding"
+      members: "List of persona cards to include"
+      protocol: "Usually roberts-rules"
+    output: file (COMMITTEE.yml) + chat
+    effect: "Create committee instance with roster"
+    invoked-by: [player, room]
+    
+  CONVENE:
+    description: "Start a committee session"
+    parameters:
+      topic: "Specific question to deliberate"
+    output: chat (opening statements)
+    effect: "Each persona states initial position"
+    invoked-by: [player, moderator]
+    
+  DELIBERATE:
+    description: "Run one round of debate"
+    parameters:
+      motion: "What's being debated"
+    output: chat (debate transcript)
+    effect: "Personas argue, following roberts-rules"
+    invoked-by: [player, moderator, coherence-engine]
+    
+  VOTE:
+    description: "Call for a vote on the motion"
+    parameters:
+      motion: "What's being voted on"
+    output: chat (vote tally) + state-change
+    effect: "Each persona votes, record result"
+    invoked-by: [moderator, player]
+    
+  EVALUATE:
+    description: "Send output to independent evaluator"
+    parameters:
+      output: "Committee's decision/output"
+      rubric: "Path to rubric to use"
+    output: chat (evaluation) + possible revision
+    effect: "Evaluator scores, may send critique back"
+    invoked-by: [committee, player]
+    
+  DISSOLVE:
+    description: "End the committee"
+    parameters: {}
+    output: chat + file (final-decision.yml)
+    effect: "Archive deliberation, finalize decision"
+    invoked-by: [player, moderator]
+
+# STATE
+# What a committee instance tracks
+
+state:
+  committee:
+    name:
+      type: string
+    purpose:
+      type: string
+    members:
+      type: array
+      description: "List of persona card references"
+    protocol:
+      type: string
+      default: "roberts-rules"
+      
+  session:
+    status:
+      type: enum
+      values: [forming, convened, deliberating, voting, adjourned]
+      default: forming
+    current-motion:
+      type: string
+    votes:
+      type: object
+      description: "Map of member -> vote"
+    transcript:
+      type: array
+      description: "Record of deliberation"
+      
+  decisions:
+    type: array
+    description: "List of decisions reached"
+
+# DEFAULT ROSTER
+# Standard committee members (can customize)
+
+default-roster:
+  maya:
+    propensity: "paranoid-realism"
+    surfaces: "Political dynamics, hidden agendas, traps"
+    voice: "What aren't they telling us?"
+    
+  frankie:
+    propensity: "idealism"
+    surfaces: "Value conflicts, missed opportunities"
+    voice: "What if this is exactly what it seems?"
+    
+  joe:
+    propensity: "continuity-guardian"
+    surfaces: "Institutional memory, what worked before"
+    voice: "We tried this in 2019..."
+    
+  vic:
+    propensity: "evidence-prosecutor"
+    surfaces: "Data gaps, unverified claims"
+    voice: "Show me the numbers."
+    
+  tammy:
+    propensity: "systems-thinking"
+    surfaces: "Unintended consequences, emergent effects"
+    voice: "If we do X, then Y will respond by..."
+
+# ADVERTISEMENTS
+# What this card offers to the room
+
+advertisements:
+  COMPLEX-DECISION:
+    score: 95
+    condition: "Facing decision with no obvious right answer"
+    
+  AVOID-BLIND-SPOTS:
+    score: 90
+    condition: "Worried about missing important perspectives"
+    
+  CHALLENGE-ASSUMPTIONS:
+    score: 85
+    condition: "Need to stress-test a plan or proposal"
+    
+  GENERATE-OPTIONS:
+    score: 80
+    condition: "Want to explore multiple framings of a problem"
+
+# INTEGRATION
+
+workflow:
+  typical-flow:
+    - FORM committee with relevant personas
+    - CONVENE session with topic
+    - DELIBERATE following roberts-rules
+    - VOTE on motion
+    - EVALUATE output against rubric
+    - If score poor, critique → DELIBERATE again
+    - DISSOLVE when decision reached
+
+# RELATED
+
+see-also:
+  - skills/roberts-rules  # The procedure they follow
+  - skills/rubric         # How output is scored
+  - skills/evaluator      # Independent assessment
+  - skills/soul-chat      # Multi-voice dialogue
+  - skills/speed-of-light # Run entire debate in one call
+  - skills/debate         # Structured debate card
+
+# CREDITS
+
+credits:
+  methodology:
+    - "Mike Gallaher — Stories All the Way Down"
+  inspiration:
+    - "Academic peer review"
+    - "Jury deliberation"
+    - "Design critique sessions"

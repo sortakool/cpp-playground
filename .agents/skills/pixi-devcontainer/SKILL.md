@@ -31,8 +31,8 @@ Do not collapse these layers into one tool.
 
 - Use `uv` under the covers for Python tool execution and installs the repo pins.
 - Prefer explicit module entrypoints for repo helpers:
-  - `finalize-bootstrap`
-  - `verify run`
+  - `cpp-playground bootstrap ...`
+  - `cpp-playground verify run`
 
 ## mise and chezmoi Rules
 
@@ -53,17 +53,25 @@ docker buildx bake -f docker-bake.hcl devcontainer --load
 
 2. Open the repo in the devcontainer.
 
+   For the repo-owned SSH runtime path, prefer:
+
+```bash
+uv run cpp-playground devcontainer up --json
+```
+
+   This defaults to host port `3333`, removes prior repo-owned devcontainer instances first, and supports overrides through `--ssh-port`, `CPP_PLAYGROUND_DEVCONTAINER_SSH_PORT`, or `.devcontainer/devcontainer.env`.
+
 3. Bootstrap the locked user-space tools:
 
 ```bash
 ./install.sh
-uv run finalize-bootstrap
+uv run cpp-playground bootstrap finalize
 ```
 
 4. Validate and prove the devcontainer surface:
 
 ```bash
-uv run verify run
+uv run cpp-playground verify run
 ```
 
 Prefer the repo tasks in `pixi.toml` over hand-written command sequences whenever an equivalent task already exists.
@@ -80,7 +88,7 @@ Do not replace that flow with a host `~/.ssh` bind mount or a direct bind-mounte
 Prefer the repo-defined commands in this order:
 
 ```bash
-uv run verify run
+uv run cpp-playground verify run
 pixi run ruff-check
 pixi run ty-check
 ```
@@ -89,7 +97,13 @@ For kernel-sensitive flows, follow `docs/latest-kernel-testing.md` instead of as
 For SSH-specific validation after runtime changes, also use:
 
 ```bash
-python3 -m cpp_playground.devcontainer_runtime smoke-ssh
+uv run cpp-playground devcontainer smoke-ssh
+```
+
+To retrieve the resolved SSH target for editor attach or shell use:
+
+```bash
+uv run cpp-playground devcontainer status --json
 ```
 
 Treat `gh auth status` inside the container as best-effort only. SSH parity is proven by matching agent identities plus successful SSH-backed Git operations.

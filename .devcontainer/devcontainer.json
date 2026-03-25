@@ -1,7 +1,7 @@
 {
-  "name": "cpp-linux-amd64",
+  "name": "cpp-playground-devcontainer",
   "image": "ghcr.io/ray-manaloto/cpp-devcontainer:dev",
-  "initializeCommand": "${localWorkspaceFolder}/.devcontainer/initialize-host.sh",
+  "initializeCommand": "cd '${localWorkspaceFolder}' && uv sync --locked --group dev && uv run cpp-playground devcontainer initialize-host",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/${localWorkspaceFolderBasename},type=bind,consistency=cached",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "remoteUser": "${localEnv:USER}",
@@ -21,15 +21,15 @@
     "SCCACHE_DIR": "/home/${localEnv:USER}/.cache/sccache",
     "VCPKG_DEFAULT_BINARY_CACHE": "/home/${localEnv:USER}/.cache/vcpkg",
     "VCPKG_BINARY_SOURCES": "clear;files,/home/${localEnv:USER}/.cache/vcpkg,readwrite",
-    "UV_LINK_MODE": "copy"
+    "UV_LINK_MODE": "copy",
+    "UV_PROJECT_ENVIRONMENT": "/home/${localEnv:USER}/.local/share/cpp-playground/.venv"
   },
   "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/home/${localEnv:USER}/.local/share/mise/shims:/workspaces/${localWorkspaceFolderBasename}/.pixi/envs/default/bin",
+    "PATH": "${containerEnv:PATH}:/home/${localEnv:USER}/.local/share/mise/shims:${containerEnv:UV_PROJECT_ENVIRONMENT}/bin:/workspaces/${localWorkspaceFolderBasename}/.pixi/envs/default/bin",
     "SSH_AUTH_SOCK": "/tmp/cpp-playground-ssh-agent.sock"
   },
   "runArgs": [
     "--platform=linux/amd64",
-    "--publish=127.0.0.1:2222:22",
     "--cap-add=SYS_PTRACE",
     "--cap-add=PERFMON",
     "--security-opt=seccomp=unconfined",
@@ -50,6 +50,6 @@
     "type=bind,source=${localEnv:HOME}/.local/state/cpp-playground,target=/tmp/cpp-playground-host-state",
     "type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock"
   ],
-  "postCreateCommand": "PYTHONPATH=/workspaces/${localWorkspaceFolderBasename}/src python3 -m cpp_playground.devcontainer_runtime post-create",
-  "postStartCommand": "PYTHONPATH=/workspaces/${localWorkspaceFolderBasename}/src python3 -m cpp_playground.devcontainer_runtime ensure-ssh"
+  "postCreateCommand": "cd '/workspaces/${localWorkspaceFolderBasename}' && uv sync --locked --group dev && uv run cpp-playground devcontainer post-create",
+  "postStartCommand": "cd '/workspaces/${localWorkspaceFolderBasename}' && uv sync --locked --group dev && uv run cpp-playground devcontainer ensure-ssh"
 }

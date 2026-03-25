@@ -40,5 +40,5 @@ docker buildx bake -f docker-bake.hcl --print <target>
 
 - Dynamic user parity and SSH behavior stay in devcontainer runtime helpers.
 - Bootstrap and verification remain:
-  - `uv run finalize-bootstrap`
-  - `uv run verify run`
+  - `uv run cpp-playground bootstrap finalize`
+  - `uv run cpp-playground verify run`

@@ -14,27 +14,26 @@ This is the repository-level instruction file for Codex runs in this repo.
 - Keep `remoteEnv.SSH_AUTH_SOCK` aligned to the stable in-container socket path `/tmp/cpp-playground-ssh-agent.sock`.
 - Treat SSH parity as "the container sees the same agent identities and can perform the same SSH-backed Git operations as the host." Do not require `gh auth status` parity, because host `gh` auth may be backed by the macOS keychain and intentionally not forwarded into the container.
 - When validating host-side SSH behavior from macOS, prefer `SSH_AUTH_SOCK="$(launchctl getenv SSH_AUTH_SOCK)" ...` if the current shell does not already export `SSH_AUTH_SOCK`.
-- If `ssh -p 2222 rmanaloto@127.0.0.1` fails after recreating the devcontainer with a host key mismatch, refresh the local entry with `ssh-keygen -R '[127.0.0.1]:2222'` before re-testing.
+- Use `uv run cpp-playground devcontainer up --json` for the SSH-exposed runtime path. It defaults to host port `3333`, names the container as `cpp-playground-<devcontainer_user>-<ssh_port>`, and validates that SSH lands in the expected container.
+- Override the default SSH port with `--ssh-port`, `CPP_PLAYGROUND_DEVCONTAINER_SSH_PORT`, or a local `.devcontainer/devcontainer.env` file.
+- `uv run cpp-playground devcontainer up` removes prior repo-owned devcontainer instances by default before launching the next one.
+- Host SSH identities authenticate the connection, but the SSH username still selects the Linux account inside the container. Use `${USER}@127.0.0.1` when you want the explicit login target.
+- Use `uv run cpp-playground devcontainer status --json` to retrieve the current SSH port, container name, container id, and workspace metadata for this repo.
 
 ## Multi-Agent Program
-- Multi-agent thread orchestration artifacts live in `.codex/multi-agent/`.
-- Per-thread prompts live in `.codex/multi-agent/prompts/MA-*.md`.
-- Thread outputs live in `.codex/multi-agent/results/MA-*-result.md`.
+- The active repo workflow for multi-agent GitHub Actions remediation lives in:
+  - `.agents/skills/gha-fix-loop/`
+- Historical prompt/result artifacts are archived under:
+  - `docs/agent-runs/`
+- Historical plan review artifacts are archived under:
+  - `docs/plan-reviews/`
 
-## Completion Contract (MA Threads)
-- Every completed MA thread must produce a result file in `.codex/multi-agent/results/`.
-- Result files must include these sections:
-  - `## Findings`
-  - `## Evidence Commands`
-  - `## PASS/FAIL`
-  - `## Blockers (Owner Thread)`
-  - `## Learnings`
-- After creating or updating a result file, run:
-  - `./.codex/multi-agent/scripts/sync_agents_learnings.sh`
-
-## Source of Truth
-- Operational process and policy for MA threads is defined in:
-  - `.codex/multi-agent/AGENTS.md`
+## Multi-Agent Archival Contract
+- Preserve earlier prompt/result/plan-review artifacts as historical records.
+- Do not introduce new repo-owned operational content under `.codex/` beyond:
+  - `.codex/config.toml`
+  - `.codex/agents/*.toml`
+- When durable run notes or review artifacts are needed, store them under `docs/`.
 
 ## Python Toolchain
 - For Python, Pixi, uv, devcontainer, or `mise` work in this repo, prefer `$python-pixi-astral-toolchain` first:
@@ -46,3 +45,13 @@ This is the repository-level instruction file for Codex runs in this repo.
 - Prefer declarative repo-owned configuration in `pyproject.toml` or other checked-in config files over ad-hoc CLI flags.
 - Keep linting, formatting, typing, dead code checks, duplication checks, modernization checks, and related static analysis enabled unless the user explicitly asks to relax policy.
 - Use supplemental tools only for gaps Ruff does not cover well enough, and configure them declaratively.
+
+## Automation Surface
+- The canonical automation entrypoint is `cpp-playground`.
+- Prefer:
+  - `uv run cpp-playground bootstrap ...`
+  - `uv run cpp-playground devcontainer ...`
+  - `uv run cpp-playground image ...`
+  - `uv run cpp-playground gha-fix-loop ...`
+  - `uv run cpp-playground verify run`
+- `install.sh` is the only checked-in shell bootstrap exception and must stay a thin trampoline into the Python CLI.

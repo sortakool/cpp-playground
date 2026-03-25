@@ -20,7 +20,7 @@ Use this skill as the routing and policy layer for Python-tooling work in this r
 
 1. Load the canonical combined policy skill:
 
-- `/Users/rmanaloto/.codex/skills/python-pixi-astral-toolchain/SKILL.md`
+- `$python-pixi-astral-toolchain`
 
 2. Then load the specialized skill that matches the task:
 
@@ -29,9 +29,9 @@ Use this skill as the routing and policy layer for Python-tooling work in this r
 - Ruff workflow:
   `/Users/rmanaloto/dev/github/ray-manaloto/cpp-playground/.agents/skills/ruff/SKILL.md`
 - Ty workflow:
-  `/Users/rmanaloto/.codex/skills/astral-ty/SKILL.md`
+  `$astral-ty`
 - uv workflow:
-  `/Users/rmanaloto/.codex/skills/uv-package-manager/SKILL.md`
+  `$uv-package-manager`
 
 ## Routing Rules
 
@@ -78,8 +78,8 @@ Load it when the task touches:
 Prefer the repo-defined commands first:
 
 ```bash
-uv run finalize-bootstrap
-uv run verify run
+uv run cpp-playground bootstrap finalize
+uv run cpp-playground verify run
 pixi run ruff-check
 pixi run ty-check
 ```

@@ -1,0 +1,37 @@
+amends "package://github.com/jdx/hk/releases/download/v1.38.0/hk@1.38.0#/Config.pkl"
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps {
+      ["ruff-format"] {
+        check_first = true
+        glob = List("src/**/*.py")
+        check = "uv run ruff format --check src"
+        fix = "uv run ruff format src"
+      }
+      ["ruff-check"] {
+        glob = List("src/**/*.py")
+        check = "uv run ruff check src"
+      }
+      ["policy"] {
+        exclusive = true
+        check = "uv run cpp-playground verify run --suite policy.codex-config-surface --suite policy.no-shell-automation --suite policy.no-executable-helpers --suite docs.live-surface --suite hooks.hk-only"
+      }
+      ["ty-check"] {
+        glob = List("src/**/*.py")
+        check = "uv run ty check src"
+      }
+    }
+  }
+
+  ["pre-push"] {
+    steps {
+      ["verify"] {
+        exclusive = true
+        check = "uv run cpp-playground verify run"
+      }
+    }
+  }
+}

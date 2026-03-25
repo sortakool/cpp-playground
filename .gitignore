@@ -3,6 +3,8 @@ firebase-debug.log
 .env
 .env.*
 !.env.example
+.devcontainer/devcontainer.env
+!.devcontainer/devcontainer.env.example
 mise.local.toml
 .pixi/
 out/

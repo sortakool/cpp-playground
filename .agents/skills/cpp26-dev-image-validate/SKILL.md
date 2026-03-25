@@ -9,7 +9,7 @@ Use this skill for runtime validation only.
 
 ## Workflow
 
-1. Run `scripts/test_images.sh`.
+1. Run `uv run cpp-playground image validate-cpp26`.
 2. Choose `--toolchain clang|gcc|all`.
 3. Optionally set `--flavor core|quantlib` (quantlib applies to clang only).
 4. Optionally set `--registry-prefix` and `--image-tag`.
@@ -19,8 +19,8 @@ Use this skill for runtime validation only.
 ## Commands
 
 ```bash
-./scripts/test_images.sh --toolchain all --image-tag dev
-./scripts/test_images.sh --toolchain clang --flavor quantlib --image-tag dev
-./scripts/test_images.sh --toolchain gcc --registry-prefix ghcr.io/ray-manaloto --image-tag 2026.03.05
-./scripts/test_images.sh --toolchain all --dry-run
+uv run cpp-playground image validate-cpp26 --toolchain all --image-tag dev
+uv run cpp-playground image validate-cpp26 --toolchain clang --flavor quantlib --image-tag dev
+uv run cpp-playground image validate-cpp26 --toolchain gcc --registry-prefix ghcr.io/ray-manaloto --image-tag 2026.03.05
+uv run cpp-playground image validate-cpp26 --toolchain all --dry-run
 ```

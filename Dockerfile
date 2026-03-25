@@ -224,10 +224,23 @@ RUN printf '#include <meta>\nint main(){return 0;}\n' >/tmp/reflection-smoke.cpp
       -fsyntax-only && \
     rm -f /tmp/reflection-smoke.cpp
 
-COPY . /opt/cpp-playground
+COPY .chezmoiversion /opt/cpp-playground/.chezmoiversion
+COPY docker-bake.hcl /opt/cpp-playground/docker-bake.hcl
+COPY hk.pkl /opt/cpp-playground/hk.pkl
+COPY install.sh /opt/cpp-playground/install.sh
+COPY mise.lock /opt/cpp-playground/mise.lock
+COPY mise.toml /opt/cpp-playground/mise.toml
+COPY pixi.toml /opt/cpp-playground/pixi.toml
+COPY pixi.lock /opt/cpp-playground/pixi.lock
+COPY pyproject.toml /opt/cpp-playground/pyproject.toml
+COPY uv.lock /opt/cpp-playground/uv.lock
+COPY home /opt/cpp-playground/home
+COPY src/cpp_playground /opt/cpp-playground/src/cpp_playground
 
 RUN chmod +x /opt/cpp-playground/install.sh && \
     /opt/cpp-playground/install.sh
+
+COPY . /opt/cpp-playground
 
 WORKDIR /workspaces
 

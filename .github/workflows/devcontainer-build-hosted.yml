@@ -6,9 +6,15 @@ on:
       - Dockerfile
       - docker-bake.hcl
       - .devcontainer/**
-      - verification/**
+      - .agents/skills/**
+      - docs/**
+      - hk.pkl
       - install.sh
-      - scripts/smoke-devcontainer-image.sh
+      - mise.toml
+      - pixi.toml
+      - pyproject.toml
+      - src/cpp_playground/**
+      - verification/**
       - .github/workflows/devcontainer-build-hosted.yml
   push:
     branches:
@@ -18,7 +24,7 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: "Publish the devcontainer image to GHCR"
+        description: "Publish the devcontainer candidate image to GHCR"
         required: false
         default: false
         type: boolean
@@ -29,8 +35,6 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.12"
-  HOSTED_CACHE_FROM: type=gha
-  HOSTED_CACHE_TO: type=gha,mode=max
   PUBLISH_REGISTRY: ghcr.io/ray-manaloto
   PUBLISH_IMAGE: cpp-devcontainer
 
@@ -58,17 +62,26 @@ jobs:
       - name: Install Python helper environment
         run: uv sync --locked --group dev
 
-      - name: Run image contract preflight
+      - name: Run contract preflight
         run: |
-          uv run verify run --suite image.stage-names.exact
-          uv run verify run --suite image.bake-targets
-          uv run verify run --suite devcontainer.from-final
-          uv run verify run --suite build-optimization.pin-alignment
+          uv run cpp-playground verify run --suite cleanup.one-dockerfile
+          uv run cpp-playground verify run --suite image.stage-names.exact
+          uv run cpp-playground verify run --suite image.bake-targets
+          uv run cpp-playground verify run --suite image.final-bootstrap-boundary
+          uv run cpp-playground verify run --suite policy.codex-config-surface
+          uv run cpp-playground verify run --suite hooks.hk-only
 
   hosted-build:
     runs-on: ubuntu-latest
     needs:
       - contract-preflight
+    outputs:
+      publish_candidate: ${{ steps.publish-plan.outputs.publish_candidate }}
+      candidate_tag: ${{ steps.publish-plan.outputs.candidate_tag }}
+      promoted_tags: ${{ steps.publish-plan.outputs.promoted_tags }}
+      base_ref: ${{ steps.publish-plan.outputs.base_ref }}
+      clang_ref: ${{ steps.publish-plan.outputs.clang_ref }}
+      gcc_ref: ${{ steps.publish-plan.outputs.gcc_ref }}
     steps:
       - uses: actions/checkout@v4
 
@@ -97,71 +110,130 @@ jobs:
 
       - name: Resolve publish plan
         id: publish-plan
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          REF: ${{ github.ref }}
-          REF_NAME: ${{ github.ref_name }}
-          SHA: ${{ github.sha }}
-          DISPATCH_PUBLISH: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publish || 'false' }}
-          PUBLISH_REGISTRY: ${{ env.PUBLISH_REGISTRY }}
-          PUBLISH_IMAGE: ${{ env.PUBLISH_IMAGE }}
         run: |
-          publish=false
-          tags=()
-
-          if [[ "${EVENT_NAME}" == "push" && "${REF}" == "refs/heads/main" ]]; then
-            publish=true
-            tags+=(
-              "${PUBLISH_REGISTRY}/${PUBLISH_IMAGE}:dev"
-              "${PUBLISH_REGISTRY}/${PUBLISH_IMAGE}:sha-${SHA}"
-            )
-          elif [[ "${EVENT_NAME}" == "push" && "${REF}" == refs/tags/* ]]; then
-            publish=true
-            tags+=(
-              "${PUBLISH_REGISTRY}/${PUBLISH_IMAGE}:${REF_NAME}"
-              "${PUBLISH_REGISTRY}/${PUBLISH_IMAGE}:sha-${SHA}"
-            )
-          elif [[ "${EVENT_NAME}" == "workflow_dispatch" && "${DISPATCH_PUBLISH}" == "true" ]]; then
-            publish=true
-            tags+=(
-              "${PUBLISH_REGISTRY}/${PUBLISH_IMAGE}:dev"
-              "${PUBLISH_REGISTRY}/${PUBLISH_IMAGE}:sha-${SHA}"
-            )
-          fi
-
-          {
-            echo "publish=${publish}"
-            echo "tags=$(IFS=,; echo "${tags[*]}")"
-          } >>"${GITHUB_OUTPUT}"
-
-      - name: Build hosted image graph
-        run: |
-          docker buildx bake -f docker-bake.hcl \
-            --set devcontainer.cache-from="${HOSTED_CACHE_FROM}" \
-            --set devcontainer.cache-to="${HOSTED_CACHE_TO}" \
-            base clang gcc final devcontainer
-
-      - name: Load hosted devcontainer image for structural smoke
-        run: |
-          docker buildx bake -f docker-bake.hcl \
-            --set devcontainer-load.cache-from="${HOSTED_CACHE_FROM}" \
-            --set devcontainer-load.cache-to="${HOSTED_CACHE_TO}" \
-            devcontainer-load
-
-      - name: Run hosted structural smoke
-        run: ./scripts/smoke-devcontainer-image.sh
+          uv run cpp-playground image publish-plan \
+            --event-name "${{ github.event_name }}" \
+            --ref "${{ github.ref }}" \
+            --ref-name "${{ github.ref_name }}" \
+            --sha "${{ github.sha }}" \
+            --registry "${{ env.PUBLISH_REGISTRY }}" \
+            --image "${{ env.PUBLISH_IMAGE }}" \
+            ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'true' && '--dispatch-publish' || '' }} \
+            --github-output
 
       - name: Log in to GHCR
-        if: steps.publish-plan.outputs.publish == 'true'
+        if: steps.publish-plan.outputs.publish_candidate == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Publish devcontainer image
-        if: steps.publish-plan.outputs.publish == 'true'
+      - name: Publish immutable base stage artifact
+        if: steps.publish-plan.outputs.publish_candidate == 'true'
+        run: docker buildx bake -f docker-bake.hcl base --set base.tags=${{ steps.publish-plan.outputs.base_ref }} --push
+
+      - name: Publish immutable clang stage artifact
+        if: steps.publish-plan.outputs.publish_candidate == 'true'
+        run: docker buildx bake -f docker-bake.hcl clang --set clang.tags=${{ steps.publish-plan.outputs.clang_ref }} --push
+
+      - name: Publish immutable gcc stage artifact
+        if: steps.publish-plan.outputs.publish_candidate == 'true'
+        run: docker buildx bake -f docker-bake.hcl gcc --set gcc.tags=${{ steps.publish-plan.outputs.gcc_ref }} --push
+
+      - name: Build hosted devcontainer graph for feedback
+        if: steps.publish-plan.outputs.publish_candidate != 'true'
+        run: docker buildx bake -f docker-bake.hcl devcontainer
+
+      - name: Publish candidate devcontainer image
+        if: steps.publish-plan.outputs.publish_candidate == 'true'
+        run: docker buildx bake -f docker-bake.hcl devcontainer --set devcontainer.tags=${{ steps.publish-plan.outputs.candidate_tag }} --push
+
+  authoritative-published-image:
+    if: needs.hosted-build.outputs.publish_candidate == 'true'
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+      - latest-kernel
+    needs:
+      - hosted-build
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: jdx/mise-action@v2
+
+      - name: Install repo tools
         run: |
-          docker buildx bake -f docker-bake.hcl \
-            --set devcontainer.tags="${{ steps.publish-plan.outputs.tags }}" \
-            devcontainer --push
+          mise trust .
+          mkdir -p "${RUNNER_TEMP}/mise"
+          : > "${RUNNER_TEMP}/mise/config.toml"
+          MISE_GLOBAL_CONFIG_FILE="${RUNNER_TEMP}/mise/config.toml" \
+          MISE_IGNORED_CONFIG_PATHS="${HOME}/.config/mise" \
+          mise install --locked
+
+      - name: Install Python helper environment
+        run: uv sync --locked --group dev
+
+      - name: Install locked pixi environment
+        run: pixi install --locked
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull candidate image
+        run: docker pull ${{ needs.hosted-build.outputs.candidate_tag }}
+
+      - name: Smoke candidate image
+        run: uv run cpp-playground image smoke --image-ref ${{ needs.hosted-build.outputs.candidate_tag }}
+
+      - name: Run repo verification
+        run: uv run cpp-playground verify run
+
+  promote-candidate:
+    if: needs.hosted-build.outputs.publish_candidate == 'true' && needs.hosted-build.outputs.promoted_tags != ''
+    runs-on: ubuntu-latest
+    needs:
+      - hosted-build
+      - authoritative-published-image
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: jdx/mise-action@v2
+
+      - name: Install repo tools
+        run: |
+          mise trust .
+          mkdir -p "${RUNNER_TEMP}/mise"
+          : > "${RUNNER_TEMP}/mise/config.toml"
+          MISE_GLOBAL_CONFIG_FILE="${RUNNER_TEMP}/mise/config.toml" \
+          MISE_IGNORED_CONFIG_PATHS="${HOME}/.config/mise" \
+          mise install --locked
+
+      - name: Install Python helper environment
+        run: uv sync --locked --group dev
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Promote validated candidate tag
+        run: |
+          uv run cpp-playground image promote \
+            --source-ref "${{ needs.hosted-build.outputs.candidate_tag }}" \
+            --target-refs-csv "${{ needs.hosted-build.outputs.promoted_tags }}"

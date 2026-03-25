@@ -1,6 +1,6 @@
 # Validation Matrix
 
-This matrix defines smoke checks executed by `scripts/test_images.sh`.
+This matrix defines smoke checks executed by `uv run cpp-playground image validate-cpp26`.
 
 Image resolution:
 
